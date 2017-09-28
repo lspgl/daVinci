@@ -20,6 +20,9 @@ class CommandDB:
         # Error keys
         self.errorkeys = [0x16, 0x17]
 
+        # Unimplemented keys
+        self.unimplemented = [0x25, 0x26]
+
         # Core functions --------------------------------------------------
         self.db[0x00] = {'desc': 'Reading on/off state',
                          'data': None,
@@ -155,6 +158,17 @@ class CommandDB:
                          'data': 'val',
                          'length': 1,
                          'retval': 'bool',
+                         'rvl': 1}
+        # Warning mask ------------------------------------------------------
+        self.db[0x25] = {'desc': 'Reading warning mask',
+                         'data': None,
+                         'length': 0,
+                         'retval': 'val',
+                         'rvl': 2}
+        self.db[0x26] = {'desc': 'Clearing warning mask',
+                         'data': None,
+                         'length': 0,
+                         'retval': 'error',
                          'rvl': 1}
         # Bootloader ------------------------------------------------------
         self.db[0x30] = {'desc': 'Device in bootloader',
