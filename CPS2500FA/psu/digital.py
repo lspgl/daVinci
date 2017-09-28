@@ -1,7 +1,7 @@
 from .toolkit.colors import Colors as _C
 
 
-class Digital():
+class Digital:
 
     def __init__(self, controller):
         self.controller = controller
@@ -40,20 +40,24 @@ class Digital():
 
         return self.state
 
-    def listenAddr(self):
+    def listenAddr(self, verbose=False):
+        if verbose:
+            print(_C.BOLD + '--------------------------' + _C.ENDC)
+            print(_C.BLUE + 'Opening ADDR-IN' + _C.ENDC)
         self.controller.io.set_port_configuration("b", 1 << 0, 'o', True)
-        print(_C.BLUE + 'Opening ADDR-IN' + _C.ENDC)
         self.update()
 
-    def closeAddr(self):
+    def closeAddr(self, verbose=False):
+        if verbose:
+            print(_C.BOLD + '--------------------------' + _C.ENDC)
+            print(_C.BLUE + 'Closing ADDR-IN' + _C.ENDC)
         self.controller.io.set_port_configuration("b", 1 << 0, 'o', False)
-        print(_C.BLUE + 'Closing ADDR-IN' + _C.ENDC)
         self.update()
 
     def status(self):
         self.update()
         print(_C.BOLD + '--------------------------' + _C.ENDC)
-        print(_C.BOLD + '       CPS2500 STATUS     ' + _C.ENDC)
+        print(_C.BOLD + 'CPS2500 STATUS' + _C.ENDC)
         print ('')
         if self.state['STATUS']:
             print(_C.RED + 'No PSU detected' + _C.ENDC)
@@ -87,5 +91,4 @@ class Digital():
                 print(_C.LIME + 'RS485 Error: No' + _C.ENDC)
             else:
                 print(_C.RED + 'RS485 Error: Yes' + _C.ENDC)
-
-        print(_C.BOLD + '--------------------------' + _C.ENDC)
+        print('')
