@@ -37,7 +37,8 @@ class PSU:
             else:
                 print(_C.RED + 'Missing data keyword for ' + str(hex(key)) + _C.ENDC)
                 return
-
+        if payload is None:
+            return
         text_output = self.formatting_function(key, entry, payload)
         print(_C.LIME + text_output + _C.ENDC)
         return(payload, entry)
@@ -53,6 +54,11 @@ class PSU:
         # Setting Addr and closing channel
         self.serial.setAddr(adr, verbose=verbose)
         self.gpio.closeAddr(verbose=verbose)
+
+    def clear_Error(self, verbose=False):
+        payload = self.serial.send_and_recieve(adr=self.adr,
+                                               cmd=0x17)
+        print(payload)
 
     def formatting_function(self, key, entry, payload):
         data = payload['data']

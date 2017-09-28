@@ -42,8 +42,9 @@ class CommandDB:
         self.db[0x03] = {'desc': 'Reading current limit setpoint',
                          'data': None,
                          'length': 0,
-                         'retval': 'val',
-                         'rvl': 2}
+                         'retval': 'phys',
+                         'rvl': 2,
+                         'unit': 'A'}
         self.db[0x04] = {'desc': 'Writing current limit setpoint',
                          'data': 'val',
                          'length': 2,
