@@ -12,7 +12,15 @@ class Colors:
 
 
 def getColor(obj, key='background-color'):
-    style = obj.styleSheet()
-    entries = (''.join(style.split())).split(';')
-    d = dict(e.split(':') for e in entries)
-    return d[key]
+    current = obj
+    while True:
+        style = current.styleSheet()
+        entries = (''.join(style.split())).split(';')
+        d = {}
+        if len(entries) > 1:
+            d = dict(e.split(':') for e in entries)
+
+        if key in d:
+            return d[key]
+        else:
+            current = current.parent

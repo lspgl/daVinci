@@ -3,25 +3,27 @@ from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 # from core import core, core
-from core import interactions, spaces
-from core.tools.colors import Colors as _C
-from core.tools.geometry import Geometry as _G
+from .core import interactions, spaces
+from .core.tools.colors import Colors as _C
+from .core.tools.geometry import Geometry as _G
 
 
 class GUI(QMainWindow):
 
-    def __init__(self, app):
+    def __init__(self, app, psu, update_fct):
         print('Initializing GUI')
         super(GUI, self).__init__()
         self.app = app
+        self.psu = psu
+        self.initUI(update_fct)
 
-        self.initUI()
-
-    def initUI(self):
+    def initUI(self, update_fct):
         # QFontDatabase.addApplicationFont("/resources/fonts/Roboto-Regular.ttf")
         # QFontDatabase.addApplicationFont("/resources/fonts/Roboto-Italic.ttf")
         # QFontDatabase.addApplicationFont("/resources/fonts/Roboto-Light.ttf")
         # QFontDatabase.addApplicationFont("/resources/fonts/Roboto-Lightitalic.ttf")
+
+        self.controller = spaces.Controller()
 
         self.setWindowTitle('CSAT')
         self.setStyleSheet("background-color:" + _C.darkgray + ";")
@@ -37,6 +39,11 @@ class GUI(QMainWindow):
         self.showFullScreen()
 
         self.move(self.app.desktop().screenGeometry(1).topLeft())
+
+        self.timer = QTimer(self)
+        self.timer.setInterval(500)
+        self.timer.timeout.connect(update_fct)
+        self.timer.start()
 
     def mousePressEvent(self, event):
         focused_widget = QApplication.focusWidget()
@@ -79,15 +86,15 @@ class GUI(QMainWindow):
         # self.state.steady(self.controlgreen)
 
     def sideBar(self):
-        addrGeometry = QRect(0, _G.header_h, _G.sidebar_w, _G.addr_h)
-        self.addrController = spaces.Controller(self, addrGeometry)
-        self.addrController.loadSpace('core.spaces.addrLabel')
+        geometry = QRect(0, _G.header_h, _G.sidebar_w, _G.addr_h)
+        # self.addrController = spaces.Controller(self, addrGeometry)
+        self.controller.initSpace('addrLabel', spaces.AddrLabel(self, geometry))
 
     def mainField(self):
-        spaceGeometry = QRect(_G.sidebar_w, _G.header_h, self.screen.width() -
-                              _G.sidebar_w, self.screen.height() - _G.header_h)
-        self.contentController = spaces.Controller(self, spaceGeometry)
-        self.contentController.loadSpace('core.spaces.splashLabel')
+        geometry = QRect(_G.sidebar_w, _G.header_h, self.screen.width() -
+                         _G.sidebar_w, self.screen.height() - _G.header_h)
+        self.controller.initSpace('splashLabel', spaces.SplashLabel(self, geometry))
+
         # self.contentController.loadSpace('core.spaces.configurationLabel')
 
     def exitApp(self, ev=None):
@@ -97,7 +104,7 @@ class GUI(QMainWindow):
 
 def main():
     app = QApplication(sys.argv)
-    w = GUI(app)
+    w = GUI(app, psu)
     w.show()
     sys.exit(app.exec_())
 

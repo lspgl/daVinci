@@ -52,8 +52,7 @@ class RS485:
         if verbose:
             print ('')
 
-    def send_and_recieve(self, adr, cmd, data=None, length=0, timeout=1000, verbose=False):
-        # self.setAddr(0x01)
+    def send_and_recieve(self, adr, cmd, data=None, length=0, timeout=50, verbose=False):
         if verbose:
             print(_C.BOLD + '--------------------------' + _C.ENDC)
             print(_C.BOLD + 'Sending Command ' + _C.MAGENTA + str(hex(cmd)) + _C.ENDC)

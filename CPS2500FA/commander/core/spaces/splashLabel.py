@@ -1,17 +1,23 @@
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
+import os
 
 
-class Space(QLabel):
+class SplashLabel(QLabel):
 
-    def __init__(self, controller):
+    def __init__(self, parent, geometry):
         # Inherit from label
-        QLabel.__init__(self, controller.parent)
-        self.setGeometry(controller.geometry)
+        QLabel.__init__(self, parent)
+        self.setGeometry(geometry)
+        self.parent = parent
+
+        print(self.width())
+        print(self.height())
+        directory = os.path.dirname(__file__)
 
         imageFrame = QLabel(self)
-        image = QPixmap('resources/img/cpslogo.png')
+        image = QPixmap(os.path.join(directory, '../../resources/img/cpslogo.png'))
         imageFrame.setPixmap(image)
 
         imageFrame.move((self.width() - image.width()) / 2,

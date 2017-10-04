@@ -15,7 +15,8 @@ class Digital:
                 'CSB-',
                 'ENABLE-1',
                 'ENABLE-2',
-                'TRIGGER', ]
+                'TRIGGER',
+                'ADDR-OUT', ]
 
         for key in keys:
             self.state[key] = None
@@ -28,6 +29,7 @@ class Digital:
         self.state['STATUS'] = bool(int(mask_a[0]))
         self.state['MAINS-NOK'] = bool(int(mask_a[1]))
         self.state['ERROR'] = bool(int(mask_a[2]))
+        self.state['ADDR-OUT'] = bool(int(mask_a[7]))
 
         self.state['TRIGGER'] = bool(int(mask_b[1]))
         self.state['ENABLE-2'] = bool(int(mask_b[2]))
@@ -71,6 +73,10 @@ class Digital:
                 print(_C.LIME + 'Waiting for address' + _C.ENDC)
             else:
                 print(_C.RED + 'Not listening for new address' + _C.ENDC)
+            if self.state['ADDR-OUT']:
+                print(_C.LIME + 'ADDR-OUT on X5 is signaling' + _C.ENDC)
+            else:
+                print(_C.RED + 'ADDR-OUT on X5 is diabled' + _C.ENDC)
 
             print ('')
             if self.state['ENABLE-1']:
