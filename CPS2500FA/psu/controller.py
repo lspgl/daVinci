@@ -2,6 +2,7 @@ from tinkerforge.ip_connection import IPConnection
 from tinkerforge.bricklet_io16 import BrickletIO16
 from tinkerforge.bricklet_rs485 import BrickletRS485
 from .toolkit.psuSignal import parseReturn1, parseReturn2
+from multiprocessing import Manager
 
 
 class Controller:
@@ -19,6 +20,7 @@ class Controller:
         self.rs2 = BrickletRS485(self.RS485_2_ID, self.ipcon)
         self.rs485 = [self.rs1, self.rs2]
 
+        self.manager = Manager()
         self.cache = [[], []]
         self.callbackFn = [self.cb_read_1, self.cb_read_2]
 
@@ -27,6 +29,7 @@ class Controller:
         self.cache[0].append(signal)
 
     def cb_read_2(self, signal):
+
         signal = parseReturn2(signal)
         self.cache[1].append(signal)
 

@@ -1,6 +1,8 @@
 from . import controller, digital, rs485
 from .toolkit.colors import Colors as _C
 from .toolkit.commandDB import CommandDB as DB
+import time
+from multiprocessing import Process
 
 
 class PSU:
@@ -14,38 +16,97 @@ class PSU:
         self.gpio = digital.Digital(self.c)
         self.serial = rs485.RS485(self.c)
         self.gpio.update()
+        self.state = self.gpio.state
         self.adr = None
 
-    def read_value(self, key, verbose=False, **kwargs):
+    def stateDigital(self):
+        state = self.gpio.update()
+        return state
+
+    def read_value(self, key, verbose=False, autowipe=True, **kwargs):
         entry = self.entries[key]
-        print(_C.CYAN + entry['desc'] + ':' + _C.ENDC)
+        if verbose == 'v' or verbose == 'vv':
+            print(_C.CYAN + entry['desc'] + ': ' + _C.ENDC, end='')
+        if verbose == 'vv':
+            vv = True
+        else:
+            vv = False
         if entry['data'] is None:
             payload = self.serial.send_and_recieve(adr=self.adr,
                                                    cmd=key,
-                                                   verbose=verbose)
+                                                   verbose=vv,
+                                                   autowipe=autowipe)
         elif not isinstance(entry['data'], str) and not isinstance(entry['data'], list):
             payload = self.serial.send_and_recieve(adr=self.adr,
                                                    cmd=key,
                                                    data=entry['data'],
-                                                   length=entry['length'])
+                                                   length=entry['length'],
+                                                   verbose=vv,
+                                                   autowipe=autowipe)
         else:
             if 'data' in kwargs:
                 payload = self.serial.send_and_recieve(adr=self.adr,
                                                        cmd=key,
                                                        data=kwargs['data'],
-                                                       length=entry['length'])
+                                                       length=entry['length'],
+                                                       verbose=vv,
+                                                       autowipe=autowipe)
             else:
                 print(_C.RED + 'Missing data keyword for ' + str(hex(key)) + _C.ENDC)
                 return
         if payload is None:
             return
-        text_output = self.formatting_function(key, entry, payload)
-        print(_C.LIME + text_output + _C.ENDC)
+        output = self.formatting_function(key, entry, payload)
+        if verbose:
+            print(_C.LIME + output + _C.ENDC)
         return(payload, entry)
+
+    def cache_value(self, key, verbose=False, **kwargs):
+        entry = self.entries[key]
+        # print(_C.CYAN + 'Caching: ' + entry['desc'] + _C.ENDC)
+        if entry['data'] is None:
+            self.serial.send_and_forget(adr=self.adr,
+                                        cmd=key,
+                                        verbose=verbose)
+        elif not isinstance(entry['data'], str) and not isinstance(entry['data'], list):
+            self.serial.send_and_forget(adr=self.adr,
+                                        cmd=key,
+                                        data=entry['data'],
+                                        length=entry['length'],
+                                        verbose=verbose)
+        else:
+            if 'data' in kwargs:
+                self.serial.send_and_forget(adr=self.adr,
+                                            cmd=key,
+                                            data=kwargs['data'],
+                                            length=entry['length'],
+                                            verbose=verbose)
+            else:
+                print(_C.RED + 'Missing data keyword for ' + str(hex(key)) + _C.ENDC)
+        return
 
     def test(self):
         for key in self.db.readkeys:
-            self.read_value(key, verbose=False)
+            self.read_value(key, verbose='v', autowipe=False)
+        # for e in self.c.cache[1]:
+        #    print(e)
+
+    def cachePhysics(self):
+        for key in self.db.physkeys:
+            self.cache_value(key, verbose=False)
+        occured = []
+        uniqueCache = []
+        for e in reversed(self.c.cache[1]):
+            cmd = e[2]['cmd']
+            if cmd not in occured:
+                uniqueCache.append(e)
+            occured.append(cmd)
+        self.c.cache[1] = uniqueCache[::-1]
+
+    def deviceInfo(self):
+        info = {hex(key): hex(self.read_value(key, verbose=False, autowipe=True)
+                              [0]['data']) for key in self.db.devicekeys}
+        return info
 
     def set_Addr(self, adr, verbose=False):
         self.adr = adr
@@ -70,7 +131,6 @@ class PSU:
         elif entry['retval'] == 'phys':
             if 'res' in entry:
                 integer_res = int(entry['res'])
-                #frac_res = int(10 * (entry['res'] - integer))
                 binary = bin(data)[2:].zfill(entry['rvl'] * 8)
                 integer = int(binary[:integer_res], 2)
                 frac = int(binary[integer_res:], 2)
@@ -84,3 +144,17 @@ class PSU:
         else:
             output = data
         return str(output)
+
+    def getCache(self):
+        cache2 = self.c.cache[1]
+        outputs = {}
+        for e in cache2:
+            key = e[2]['cmd']
+            entry = self.entries[key]
+            payload = e[2]
+            output = self.formatting_function(key, entry, payload)
+            outputs[key] = output
+        for key in self.db.physkeys:
+            if key not in outputs:
+                outputs[key] = '-'
+        return outputs

@@ -35,6 +35,13 @@ class StateLabel(QLabel):
         self.enabled = True
 
     def disable(self):
-        self.style.set({'background-color': getColor(self.parent), 'border-color': _C.textgray})
+        self.style.set(background_color=getColor(self.parent), border_color=_C.textgray)
         self.setStyleSheet(self.style.get())
         self.enabled = False
+
+    def flash(self):
+        self.enable()
+        self.timer = QTimer(self)
+        self.timer.setInterval(500)
+        self.timer.timeout.connect(self.disable)
+        self.timer.start()

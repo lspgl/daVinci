@@ -12,7 +12,7 @@ from .. import elements
 import time
 
 
-class AddrLabel(QLabel):
+class SetpointLabel(QLabel):
 
     def __init__(self, parent, geometry):
         # Inherit from label
@@ -28,26 +28,36 @@ class AddrLabel(QLabel):
         self.setStyleSheet(self.style.get())
 
         self.line = interactions.TextInput(self)
-        self.line.setPlaceholderText('Address')
+        self.line.setPlaceholderText('Voltage Setpoint [V]')
         self.line.move(25, 10)
         self.line.setFixedWidth(150)
         self.line.setNumericString()
 
         colors = {'main': _C.highlight, 'hover': _C.highlight,
                   'text': '#000000', 'hoverText': _C.darkgray}
-        self.runBtn = interactions.ControlButton(self, (25, 50), colors, 'Initialize',
-                                                 function=self.initialize,
+        self.runBtn = interactions.ControlButton(self, (25, 50), colors, 'Set Voltage',
+                                                 function=self.setVoltage,
                                                  fargs=None)
-        self.line.setFocus()
 
-        self.adr_in_switch = elements.StateLabelText(self, 'ADDR-IN')
-        self.adr_out_switch = elements.StateLabelText(self, 'ADDR-OUT')
-        self.adr_in_switch.move(self.width() - self.adr_in_switch.width() - 25, 70)
-        self.adr_out_switch.move(self.width() - self.adr_out_switch.width() - 25, 50)
+        self.ready = elements.StateLabelText(self, 'Ready')
+        self.ready.move(self.width() - self.ready.width() - 25, 20)
 
-        self.parent.indicators.link('ADDR-IN', self.adr_in_switch)
-        self.parent.indicators.link('ADDR-OUT', self.adr_out_switch)
+        self.enable1 = interactions.StateSwitchText(self, 'Enable I')
+        self.enable2 = interactions.StateSwitchText(self, 'Enable II')
+        self.enable1.move(self.width() - self.enable1.width() - 25, 50)
+        self.enable2.move(self.width() - self.enable2.width() - 25, 70)
 
+        self.engage = interactions.StateSwitchText(self, 'Engage', inactive=True)
+        self.engage.move(self.width() - self.engage.width() - 25, 90)
+
+        self.parent.indicators.link('READY', self.ready)
+        self.parent.switches.link('ENABLE-1', self.enable1)
+        self.parent.switches.link('ENABLE-2', self.enable2)
+        self.parent.switches.link('ENGAGE', self.engage)
+
+        # self.parent.indicators.link('ADDR-IN', self.adr_in_switch)
+        # self.parent.indicators.link('ADDR-OUT', self.adr_out_switch)
+        """
         self.psu_det = QLabel(self)
         self.psu_det.setText('No PSU detected')
         s = ("color:" + _C.textgray + '; font-weight: 100;'
@@ -67,29 +77,30 @@ class AddrLabel(QLabel):
         self.current_adr.move(25, 125)
 
         self.parent.text.link('CURRENT-ADDR', self.current_adr)
-
+        """
         self.delimiter = elements.Delimiter(self)
         self.delimiter.move(25, self.height() - 1)
 
-    def initialize(self):
+    def setVoltage(self):
         if self.parent.psu.state['STATUS'] or self.parent.psu.state['STATUS'] is None:
             self.line.setText('No PSU Connected')
             return
         addr_str = self.line.text()
         if addr_str == '':
             return
-        if int(addr_str, 0) > 127 or int(addr_str, 0) == 0:
+        if int(addr_str, 0) > 255:
             self.line.setText('Invalid Address')
             return
         else:
             addr = int(addr_str, 0)
             self.line.setText(hex(addr))
             self.parent.psu.set_Addr(addr)
-            info = self.parent.psu.deviceInfo()
-            self.parent.controller.spaces['hardwareLabel'].setInfo(info)
             self.current_adr.setText('Address: ' + str(hex(addr)))
             self.adr_in_switch.box.flash()
             # time.sleep(1)
             # self.adr_in_switch.box.disable()
 
             return
+
+    def enable(self, i):
+        pass

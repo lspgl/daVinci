@@ -18,6 +18,9 @@ class RS485:
         return crc_val.digest()
 
     def write(self, adr, cmd, data, length, port, verbose=False):
+        if adr is None:
+            print('WARNING: No address set')
+            return
         if data is not None:
             data_b = data.to_bytes(length, 'big')
             data_l = [d for d in data_b]
@@ -36,12 +39,15 @@ class RS485:
         send_array = list(map(chr, bytes(send_array)))
         port.write(send_array)
 
-    def readCache(self, cache, verbose=False):
+    def readCache(self, cache, verbose=False, last=False):
         if verbose:
             for entry in cache:
                 psuSignal.tablePrint(*entry[:2], recieving=True)
 
-        return cache[-1]
+        if last:
+            return cache[-1]
+        else:
+            return cache
 
     def setAddr(self, adr, verbose=False):
         if verbose:
@@ -52,25 +58,35 @@ class RS485:
         if verbose:
             print ('')
 
-    def send_and_recieve(self, adr, cmd, data=None, length=0, timeout=50, verbose=False):
+    def send_and_recieve(self, adr, cmd, data=None, length=0, timeout=50, autowipe=True, verbose=False):
+        cachesize_init = len(self.controller.cache[1])
+
         if verbose:
             print(_C.BOLD + '--------------------------' + _C.ENDC)
             print(_C.BOLD + 'Sending Command ' + _C.MAGENTA + str(hex(cmd)) + _C.ENDC)
         self.write(adr=adr, cmd=cmd, data=data, length=length, port=self.ports[1], verbose=verbose)
         wait = 0
         t0 = time.time()
-        while len(self.controller.cache[1]) == 0 and wait < timeout:
+        while len(self.controller.cache[1]) == cachesize_init and wait < timeout:
             wait = (time.time() - t0) * 1000
             pass
 
         if wait >= timeout:
-            print('')
             print(_C.RED + 'Response Timeout' + _C.ENDC)
+            print('')
             recieved = None
             return recieved
         else:
-            recieved = self.readCache(self.controller.cache[1], verbose=verbose)
-            self.controller.wipeCache()
+            recieved = self.readCache(self.controller.cache[1], verbose=verbose, last=True)
+            if autowipe:
+                self.controller.wipeCache()
         if verbose:
             print('')
         return recieved[-1]
+
+    def send_and_forget(self, adr, cmd, data=None, length=0, timeout=50, verbose=False):
+        if verbose:
+            print(_C.BOLD + '--------------------------' + _C.ENDC)
+            print(_C.BOLD + 'Sending Command ' + _C.MAGENTA + str(hex(cmd)) + _C.ENDC)
+        self.write(adr=adr, cmd=cmd, data=data, length=length, port=self.ports[1], verbose=verbose)
+        return

@@ -56,6 +56,22 @@ class Digital:
         self.controller.io.set_port_configuration("b", 1 << 0, 'o', False)
         self.update()
 
+    def enable(self, i, verbose=False):
+        if verbose:
+            print(_C.BOLD + '--------------------------' + _C.ENDC)
+            print(_C.BLUE + 'Enabling ' + str(i) + _C.ENDC)
+        if i in [1, 2]:
+            self.controller.io.set_port_configuration("b", 1 << 3 + i, 'o', True)
+        self.update()
+
+    def disable(self, i, verbose=False):
+        if verbose:
+            print(_C.BOLD + '--------------------------' + _C.ENDC)
+            print(_C.BLUE + 'Disabling ' + str(i) + _C.ENDC)
+        if i in [1, 2]:
+            self.controller.io.set_port_configuration("b", 1 << 3 + i, 'o', False)
+        self.update()
+
     def status(self):
         self.update()
         print(_C.BOLD + '--------------------------' + _C.ENDC)

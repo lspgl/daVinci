@@ -2,10 +2,12 @@ import sys
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
-# from core import core, core
-from .core import interactions, spaces
-from .core.tools.colors import Colors as _C
-from .core.tools.geometry import Geometry as _G
+
+from . import interactions, spaces
+from .tools.colors import Colors as _C
+from .tools.geometry import Geometry as _G
+
+from .api import indicators, text, switches, physics
 
 
 class GUI(QMainWindow):
@@ -15,6 +17,11 @@ class GUI(QMainWindow):
         super(GUI, self).__init__()
         self.app = app
         self.psu = psu
+        # Load API handles
+        self.indicators = indicators.Indicators()
+        self.text = text.Text()
+        self.switches = switches.Switches()
+
         self.initUI(update_fct)
 
     def initUI(self, update_fct):
@@ -34,6 +41,7 @@ class GUI(QMainWindow):
         self.mainField()
         self.windowButtons()
         self.sideBar()
+        self.hardwareInfo()
 
         self.app.desktop().primaryScreen()
         self.showFullScreen()
@@ -41,7 +49,7 @@ class GUI(QMainWindow):
         self.move(self.app.desktop().screenGeometry(1).topLeft())
 
         self.timer = QTimer(self)
-        self.timer.setInterval(500)
+        self.timer.setInterval(50)
         self.timer.timeout.connect(update_fct)
         self.timer.start()
 
@@ -86,16 +94,27 @@ class GUI(QMainWindow):
         # self.state.steady(self.controlgreen)
 
     def sideBar(self):
-        geometry = QRect(0, _G.header_h, _G.sidebar_w, _G.addr_h)
-        # self.addrController = spaces.Controller(self, addrGeometry)
+        cursor = _G.header_h
+        geometry = QRect(0, cursor, _G.sidebar_w, _G.addr_h)
         self.controller.initSpace('addrLabel', spaces.AddrLabel(self, geometry))
+        cursor += self.controller.spaces['addrLabel'].height()
+
+        geometry = QRect(0, cursor, _G.sidebar_w, _G.setpoint_h)
+        self.controller.initSpace('setpointLabel', spaces.SetpointLabel(self, geometry))
+        cursor += self.controller.spaces['setpointLabel'].height()
+
+        geometry = QRect(0, cursor, _G.sidebar_w, _G.physics_h)
+        self.controller.initSpace('physicsLabel', spaces.PhysicsLabel(self, geometry))
+        self.physics = physics.Physics(self.controller.spaces['physicsLabel'])
 
     def mainField(self):
         geometry = QRect(_G.sidebar_w, _G.header_h, self.screen.width() -
                          _G.sidebar_w, self.screen.height() - _G.header_h)
         self.controller.initSpace('splashLabel', spaces.SplashLabel(self, geometry))
 
-        # self.contentController.loadSpace('core.spaces.configurationLabel')
+    def hardwareInfo(self):
+        geometry = QRect(self.screen.width() - 225 + 11, 25, 200, _G.header_h - 25)
+        self.controller.initSpace('hardwareLabel', spaces.HardwareLabel(self, geometry))
 
     def exitApp(self, ev=None):
         print('Closing GUI')
