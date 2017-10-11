@@ -13,12 +13,12 @@ from .stateLabel import StateLabel
 class StateLabelText(QLabel):
     # Label to indicated system readyness state
 
-    def __init__(self, parent, text, width=100):
+    def __init__(self, parent, text, color=_C.highlight, width=100):
         # Inherit from label
         QLabel.__init__(self, parent)
         self.parent = parent
         self.setGeometry(QRect(0, 0, width, 15))
-        self.box = StateLabel(self)
+        self.box = StateLabel(self, color=color)
 
         # self.box.setGeometry(QRect(self.width() - self.box.width(), 0, self.box.width(), self.box.height()))
         self.box.move(self.width() - self.box.width(), 0)

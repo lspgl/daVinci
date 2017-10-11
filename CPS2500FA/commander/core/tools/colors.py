@@ -2,6 +2,7 @@ class Colors:
     lightgray = '#323232'
     midgray = '#202020'
     darkgray = '#131313'
+    white = '#ffffff'
 
     textgray = '#9b9b9b'
     highlight = '#00bfc6'

@@ -104,6 +104,7 @@ class PSU:
         self.c.cache[1] = uniqueCache[::-1]
 
     def deviceInfo(self):
+        print(self.db.devicekeys)
         info = {hex(key): hex(self.read_value(key, verbose=False, autowipe=True)
                               [0]['data']) for key in self.db.devicekeys}
         return info
@@ -115,6 +116,12 @@ class PSU:
         # Setting Addr and closing channel
         self.serial.setAddr(adr, verbose=verbose)
         self.gpio.closeAddr(verbose=verbose)
+
+    def reset_Addr(self, verbose=False):
+        self.adr = None
+        # self.gpio.listenAddr(verbose=verbose)
+        self.serial.resetAddr(verbose=verbose)
+        # self.gpio.closeAddr(verbose=verbose)
 
     def clear_Error(self, verbose=False):
         payload = self.serial.send_and_recieve(adr=self.adr,
@@ -135,10 +142,13 @@ class PSU:
                 integer = int(binary[:integer_res], 2)
                 frac = int(binary[integer_res:], 2)
                 frac = frac / 10**len(str(frac))
-                output = str(integer + frac) + ' ' + entry['unit']
+                value = integer + frac
             else:
                 scale = 2**(entry['rvl'] * 8) - 1
-                output = str(data / scale) + ' ' + entry['unit']
+                value = data / scale
+            if 'maxval' in entry:
+                value *= entry['maxval']
+            output = str(value) + ' ' + entry['unit']
         elif key == 0x16:
             output = bin(data)[2:].zfill(entry['rvl'] * 8)
         else:
@@ -150,10 +160,15 @@ class PSU:
         outputs = {}
         for e in cache2:
             key = e[2]['cmd']
-            entry = self.entries[key]
-            payload = e[2]
-            output = self.formatting_function(key, entry, payload)
-            outputs[key] = output
+            if key in self.entries:
+                entry = self.entries[key]
+                payload = e[2]
+                output = self.formatting_function(key, entry, payload)
+                outputs[key] = output
+            else:
+                outputs[key] = e[2]
+                print('Unknown Return:')
+                print(e[0])
         for key in self.db.physkeys:
             if key not in outputs:
                 outputs[key] = '-'

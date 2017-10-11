@@ -11,6 +11,7 @@ class RS485:
         self.controller = controller
         self.STX = 0x02
         self.ports = [self.controller.rs1, self.controller.rs2]
+        self.deadtime = 20.0 / 1000.0
 
     def calc_crc(self, byte_array):
         crc_val = crc8()
@@ -58,6 +59,14 @@ class RS485:
         if verbose:
             print ('')
 
+    def resetAddr(self, verbose=False):
+        if verbose:
+            print(_C.BOLD + '--------------------------' + _C.ENDC)
+            print(_C.BOLD + 'Resetting Address' + _C.ENDC)
+        self.write(adr=0x00, cmd=0x06, data=0x1234, length=2, port=self.ports[1], verbose=verbose)
+        if verbose:
+            print ('')
+
     def send_and_recieve(self, adr, cmd, data=None, length=0, timeout=50, autowipe=True, verbose=False):
         cachesize_init = len(self.controller.cache[1])
 
@@ -89,4 +98,5 @@ class RS485:
             print(_C.BOLD + '--------------------------' + _C.ENDC)
             print(_C.BOLD + 'Sending Command ' + _C.MAGENTA + str(hex(cmd)) + _C.ENDC)
         self.write(adr=adr, cmd=cmd, data=data, length=length, port=self.ports[1], verbose=verbose)
+        time.sleep(self.deadtime)
         return

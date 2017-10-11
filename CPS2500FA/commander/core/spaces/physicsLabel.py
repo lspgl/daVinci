@@ -36,11 +36,19 @@ class PhysicsLabel(QLabel):
         self.delimiter = elements.Delimiter(self)
         self.delimiter.move(0, self.height() - 1)
 
-    def update(self, cache):
-        self.setText('Current limit setpoint : ' + cache['0x03'] + '\n\n' +
-                     'Output voltage: ' + cache['0x03'] + '\n' +
-                     'Output current: ' + cache['0x03'] + '\n' +
-                     'Output power: ' + cache['0x03'] + '\n\n' +
-                     'Input voltage: ' + cache['0x03'] + '\n' +
-                     'Input frequency: ' + cache['0x03'] + '\n' +
-                     'Temperature: ' + cache['0x03'] + '\n')
+        colors = {'main': _C.highlight, 'hover': _C.highlight,
+                  'text': '#000000', 'hoverText': _C.darkgray}
+        self.initBtn = interactions.ControlButton(self, (0, 160), colors, 'Query Physics',
+                                                  function=self.update,
+                                                  fargs=None)
+
+    def update(self):
+        self.parent.psu.cachePhysics()
+        cache = self.parent.psu.getCache()
+        self.setText('Current limit setpoint : ' + cache[int('0x03', 0)] + '\n\n' +
+                     'Output voltage: ' + cache[int('0x10', 0)] + '\n' +
+                     'Output current: ' + cache[int('0x11', 0)] + '\n' +
+                     'Output power: ' + cache[int('0x12', 0)] + '\n\n' +
+                     'Input voltage: ' + cache[int('0x13', 0)] + '\n' +
+                     'Input frequency: ' + cache[int('0x14', 0)] + '\n' +
+                     'Temperature: ' + cache[int('0x15', 0)] + '\n')

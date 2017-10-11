@@ -21,6 +21,8 @@ class Digital:
         for key in keys:
             self.state[key] = None
 
+        self.controller.io.set_port_configuration('a', 0b00000001, 'i', False)
+
     def update(self):
         # Get current value from port A as bitmask
         mask_a = format(self.controller.io.get_port("a"), '08b')

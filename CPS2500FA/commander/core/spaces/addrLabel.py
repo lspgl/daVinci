@@ -35,18 +35,27 @@ class AddrLabel(QLabel):
 
         colors = {'main': _C.highlight, 'hover': _C.highlight,
                   'text': '#000000', 'hoverText': _C.darkgray}
-        self.runBtn = interactions.ControlButton(self, (25, 50), colors, 'Initialize',
-                                                 function=self.initialize,
-                                                 fargs=None)
+        self.initBtn = interactions.ControlButton(self, (25, 50), colors, 'Initialize',
+                                                  function=self.initialize,
+                                                  fargs=None)
+        colors = {'main': _C.controlred, 'hover': _C.controlred,
+                  'text': '#000000', 'hoverText': _C.darkgray}
+        self.resetBtn = interactions.ControlButton(self, (25, 90), colors, 'Reset Adr',
+                                                   function=self.resetAddr,
+                                                   fargs=None)
         self.line.setFocus()
 
         self.adr_in_switch = elements.StateLabelText(self, 'ADDR-IN')
         self.adr_out_switch = elements.StateLabelText(self, 'ADDR-OUT')
+        self.mains_switch = elements.StateLabelText(self, 'MAINS-NOK', color=_C.controlred)
+
         self.adr_in_switch.move(self.width() - self.adr_in_switch.width() - 25, 70)
         self.adr_out_switch.move(self.width() - self.adr_out_switch.width() - 25, 50)
+        self.mains_switch.move(self.width() - self.adr_out_switch.width() - 25, 90)
 
         self.parent.indicators.link('ADDR-IN', self.adr_in_switch)
         self.parent.indicators.link('ADDR-OUT', self.adr_out_switch)
+        self.parent.indicators.link('MAINS-NOK', self.mains_switch)
 
         self.psu_det = QLabel(self)
         self.psu_det.setText('No PSU detected')
@@ -54,7 +63,7 @@ class AddrLabel(QLabel):
              )
         self.psu_det.style = StyleSheet(s)
         self.psu_det.setStyleSheet(self.psu_det.style.get())
-        self.psu_det.move(25, 100)
+        self.psu_det.move(25, 140)
 
         self.parent.text.link('STATUS', self.psu_det)
 
@@ -64,7 +73,7 @@ class AddrLabel(QLabel):
              )
         self.current_adr.style = StyleSheet(s)
         self.current_adr.setStyleSheet(self.current_adr.style.get())
-        self.current_adr.move(25, 125)
+        self.current_adr.move(25, 165)
 
         self.parent.text.link('CURRENT-ADDR', self.current_adr)
 
@@ -73,13 +82,15 @@ class AddrLabel(QLabel):
 
     def initialize(self):
         if self.parent.psu.state['STATUS'] or self.parent.psu.state['STATUS'] is None:
-            self.line.setText('No PSU Connected')
+            self.line.clear()
+            self.line.setPlaceholderText('No PSU Connected')
             return
         addr_str = self.line.text()
         if addr_str == '':
             return
-        if int(addr_str, 0) > 127 or int(addr_str, 0) == 0:
-            self.line.setText('Invalid Address')
+        if float(addr_str) > 127 or float(addr_str) == 0 or float(addr_str) != int(float(addr_str)):
+            self.line.clear()
+            self.line.setPlaceholderText('Invalid Address')
             return
         else:
             addr = int(addr_str, 0)
@@ -93,3 +104,13 @@ class AddrLabel(QLabel):
             # self.adr_in_switch.box.disable()
 
             return
+
+    def resetAddr(self):
+        if self.parent.psu.state['STATUS'] or self.parent.psu.state['STATUS'] is None:
+            self.line.clear()
+            self.line.setPlaceholderText('No PSU Connected')
+            return
+
+        self.line.clear()
+        self.parent.psu.reset_Addr()
+        self.current_adr.setText('No address set')

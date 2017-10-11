@@ -15,18 +15,24 @@ class App:
         self.gui.show()
         sys.exit(self.app.exec_())
 
-    def update(self):
+    def update(self, manualRS=True):
         # update Digital state
         state = self.psu.stateDigital()
         # Request new physical values to cache
-        if self.psu.adr is not None:
-            self.psu.cachePhysics()
-            self.gui.physics.update(self.psu.getCache())
+        if self.psu.adr is not None and not state['STATUS'] and not manualRS:
+            # self.psu.cachePhysics()
+            self.gui.physics.update()
         # Address out state
         if state['ADDR-OUT']:
             self.gui.indicators.enable('ADDR-OUT')
         else:
             self.gui.indicators.disable('ADDR-OUT')
+
+        # Power State
+        if not state['MAINS-NOK']:
+            self.gui.indicators.enable('MAINS-NOK')
+        else:
+            self.gui.indicators.disable('MAINS-NOK')
 
         # PSU State
         if not state['STATUS']:

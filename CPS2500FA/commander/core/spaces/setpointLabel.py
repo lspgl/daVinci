@@ -42,15 +42,19 @@ class SetpointLabel(QLabel):
         self.ready = elements.StateLabelText(self, 'Ready')
         self.ready.move(self.width() - self.ready.width() - 25, 20)
 
+        self.engaged = elements.StateLabelText(self, 'Engaged')
+        self.engaged.move(self.width() - self.ready.width() - 25, 40)
+
         self.enable1 = interactions.StateSwitchText(self, 'Enable I')
         self.enable2 = interactions.StateSwitchText(self, 'Enable II')
-        self.enable1.move(self.width() - self.enable1.width() - 25, 50)
-        self.enable2.move(self.width() - self.enable2.width() - 25, 70)
+        self.enable1.move(self.width() - self.enable1.width() - 25, 70)
+        self.enable2.move(self.width() - self.enable2.width() - 25, 90)
 
         self.engage = interactions.StateSwitchText(self, 'Engage', inactive=True)
-        self.engage.move(self.width() - self.engage.width() - 25, 90)
+        self.engage.move(self.width() - self.engage.width() - 25, 110)
 
         self.parent.indicators.link('READY', self.ready)
+        self.parent.indicators.link('ENGAGED', self.engaged)
         self.parent.switches.link('ENABLE-1', self.enable1)
         self.parent.switches.link('ENABLE-2', self.enable2)
         self.parent.switches.link('ENGAGE', self.engage)
@@ -85,14 +89,15 @@ class SetpointLabel(QLabel):
         if self.parent.psu.state['STATUS'] or self.parent.psu.state['STATUS'] is None:
             self.line.setText('No PSU Connected')
             return
-        addr_str = self.line.text()
-        if addr_str == '':
+        v_str = self.line.text()
+        if v_str == '':
             return
-        if int(addr_str, 0) > 255:
-            self.line.setText('Invalid Address')
+        if float(v_str) > 40:
+            self.line.clear()
+            self.line.setPlaceholderText('Invalid voltage')
             return
         else:
-            addr = int(addr_str, 0)
+            v = float(v_str)
             self.line.setText(hex(addr))
             self.parent.psu.set_Addr(addr)
             self.current_adr.setText('Address: ' + str(hex(addr)))

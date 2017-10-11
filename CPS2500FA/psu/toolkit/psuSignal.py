@@ -51,7 +51,8 @@ def tablePrint(send_array, send_length, recieving=False):
                   (len(str(hex(send_array[4]))) - 3) * ' ' +
                   '  | CRC ' + (len(str(hex(send_array[-1]))) - 3) * ' ' + ' |' + _C.ENDC)
 
-        formatted += paddedHex(send_array[4]) + ' '
+        for i in range(send_length):
+            formatted += paddedHex(send_array[4 + i]) + ' '
         formatted += '| '
         # for c in send_array[4 + send_length:]:
         formatted += paddedHex(send_array[-1]) + ' '

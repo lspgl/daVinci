@@ -26,5 +26,6 @@ class TextInput(QLineEdit):
         self.setStyleSheet(self.style.get())
 
     def setNumericString(self):
-        reg_ex = QRegExp("^[0-9]*$")
+        #reg_ex = QRegExp("^[0-9]*$")
+        reg_ex = QRegExp("^[0-9]\d*(\.\d+)?$")
         self.setValidator(QRegExpValidator(reg_ex, self))

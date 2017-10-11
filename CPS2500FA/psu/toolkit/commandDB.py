@@ -44,7 +44,8 @@ class CommandDB:
                          'length': 0,
                          'retval': 'phys',
                          'rvl': 2,
-                         'unit': 'A'}
+                         'unit': 'A',
+                         'maxval': 66}
         self.db[0x04] = {'desc': 'Writing current limit setpoint',
                          'data': 'val',
                          'length': 2,
@@ -67,19 +68,22 @@ class CommandDB:
                          'length': 0,
                          'retval': 'phys',
                          'rvl': 2,
-                         'unit': 'V'}
+                         'unit': 'V',
+                         'maxval': 48}
         self.db[0x11] = {'desc': 'Reading output current',
                          'data': None,
                          'length': 0,
                          'retval': 'phys',
                          'rvl': 2,
-                         'unit': 'A'}
+                         'unit': 'A',
+                         'maxval': 84}
         self.db[0x12] = {'desc': 'Reading output power',
                          'data': None,
                          'length': 0,
                          'retval': 'phys',
                          'rvl': 2,
-                         'unit': 'W'}
+                         'unit': 'W',
+                         'maxval': 4032}
         self.db[0x13] = {'desc': 'Reading input voltage',
                          'data': 0,
                          'length': 1,
