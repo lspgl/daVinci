@@ -32,7 +32,7 @@ class Controller:
         self.cache[0].append(signal)
 
     def cb_read_2(self, signal):
-
+        # print('reading:', signal)
         signal = parseReturn2(signal)
         self.cache[1].append(signal)
 
@@ -56,9 +56,10 @@ class Controller:
                                            rs.WORDLENGTH_8, rs.DUPLEX_HALF)
                 rs.register_callback(rs.CALLBACK_READ, self.callbackFn[i])
                 rs.enable_read_callback()
+            return True
         else:
-            print('Controller not connected')
-            sys.exit()
+            self.ipcon.disconnect()
+            return False
 
     def disconnect(self):
         self.ipcon.disconnect()

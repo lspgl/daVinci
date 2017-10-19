@@ -11,9 +11,11 @@ class CommandDB:
                          0x1B,
                          ]
         # Physical state keys
-        self.physkeys = [0x03, 0x10, 0x11,
-                         0x12, 0x13, 0x14,
-                         0x15]
+        self.physkeys = [0x10, 0x11, 0x12,
+                         0x13, 0x14, 0x15]
+        # Keys with 10.6 bits
+        self.splitByte = [0x13, 0x14, 0x15]
+
         # Device info keys
         self.devicekeys = [0x18, 0x19, 0x1A,
                            0x1B]

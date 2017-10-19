@@ -1,12 +1,11 @@
 from psu.psu import PSU
+from psu.test import Test
 from commander.application import App
 
 if __name__ == '__main__':
     unit = PSU()
 
-    app = App(unit)
+    #app = App(unit)
 
-    # unit.gpio.status()
-    # unit.set_Addr(0x01)
+    Test(unit)
     # unit.cachePhysics()
-    # unit.test()

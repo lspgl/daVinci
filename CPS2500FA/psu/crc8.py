@@ -12,9 +12,9 @@ and gave credit "From the PyPy project" and the link
 import sys
 
 __author__ = "Nicco Kunzmann"
-__version__ = "0.0.3"
+__version__ = "0.0.4"
 
-PY2 = sys.version_info[0] == 2
+# PY2 = sys.version_info[0] == 2
 
 
 class crc8(object):
@@ -86,36 +86,22 @@ class crc8(object):
         """
         return hex(self._sum)[2:].zfill(2)
 
-    if PY2:
-        def _update(self, bytes_):
-            if isinstance(bytes_, unicode):
-                bytes_ = bytes_.encode()
-            elif not isinstance(bytes_, str):
-                raise TypeError("must be string or buffer")
-            table = self._table
-            _sum = self._sum
-            for byte in bytes_:
-                _sum = table[_sum ^ ord(byte)]
-            self._sum = _sum
+    def _update(self, bytes_):
+        if isinstance(bytes_, str):
+            bytes_ = bytes_.encode('utf-8')
+            print('crc:', bytes_)
+            # raise TypeError("Unicode-objects must be encoded before"
+            #                " hashing")
+        elif not isinstance(bytes_, (bytes, bytearray)):
+            raise TypeError("object supporting the buffer API required")
+        table = self._table
+        _sum = self._sum
+        for byte in bytes_:
+            _sum = table[_sum ^ byte]
+        self._sum = _sum
 
-        def _digest(self):
-            return chr(self._sum)
-    else:
-        def _update(self, bytes_):
-            if isinstance(bytes_, str):
-                bytes_ = bytes_.encode()
-                # raise TypeError("Unicode-objects must be encoded before"\
-                #                " hashing")
-            elif not isinstance(bytes_, (bytes, bytearray)):
-                raise TypeError("object supporting the buffer API required")
-            table = self._table
-            _sum = self._sum
-            for byte in bytes_:
-                _sum = table[_sum ^ byte]
-            self._sum = _sum
-
-        def _digest(self):
-            return bytes([self._sum])
+    def _digest(self):
+        return bytes([self._sum])
 
     def copy(self):
         """Return a copy ("clone") of the hash object.

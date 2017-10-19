@@ -21,7 +21,8 @@ class Digital:
         for key in keys:
             self.state[key] = None
 
-        self.controller.io.set_port_configuration('a', 0b00000001, 'i', False)
+        self.controller.io.set_port_configuration('a', 0b11100001, 'i', False)
+        self.controller.io.set_port_configuration('b', 0b01110001, 'o', False)
 
     def update(self):
         # Get current value from port A as bitmask
@@ -76,43 +77,44 @@ class Digital:
 
     def status(self):
         self.update()
-        print(_C.BOLD + '--------------------------' + _C.ENDC)
-        print(_C.BOLD + 'CPS2500 STATUS' + _C.ENDC)
+        print(_C.BOLD + '--- CPS2500 DIGITAL --' + _C.ENDC)
         print ('')
         if self.state['STATUS']:
-            print(_C.RED + 'No PSU detected' + _C.ENDC)
+            print(_C.LIME + 'STATUS 1' + _C.ENDC)
         else:
-            if self.state['MAINS-NOK']:
-                print(_C.LIME + 'External power connected' + _C.ENDC)
-            else:
-                print(_C.RED + 'External power disconnected' + _C.ENDC)
+            print(_C.CYAN + 'STATUS 0' + _C.ENDC)
 
-            if self.state['ADDR-IN']:
-                print(_C.LIME + 'Waiting for address' + _C.ENDC)
-            else:
-                print(_C.RED + 'Not listening for new address' + _C.ENDC)
-            if self.state['ADDR-OUT']:
-                print(_C.LIME + 'ADDR-OUT on X5 is signaling' + _C.ENDC)
-            else:
-                print(_C.RED + 'ADDR-OUT on X5 is diabled' + _C.ENDC)
+        if self.state['MAINS-NOK']:
+            print(_C.LIME + 'External power connected' + _C.ENDC)
+        else:
+            print(_C.RED + 'External power disconnected' + _C.ENDC)
 
-            print ('')
-            if self.state['ENABLE-1']:
-                print(_C.LIME + 'Enable 1: ON' + _C.ENDC)
-            else:
-                print(_C.RED + 'Enable 1: OFF' + _C.ENDC)
-            if self.state['ENABLE-2']:
-                print(_C.LIME + 'Enable 2: ON' + _C.ENDC)
-            else:
-                print(_C.RED + 'Enable 2: OFF' + _C.ENDC)
+        if self.state['ADDR-IN']:
+            print(_C.LIME + 'Waiting for address' + _C.ENDC)
+        else:
+            print(_C.RED + 'Not listening for new address' + _C.ENDC)
+        if self.state['ADDR-OUT']:
+            print(_C.LIME + 'ADDR-OUT on X5 is signaling' + _C.ENDC)
+        else:
+            print(_C.RED + 'ADDR-OUT on X5 is diabled' + _C.ENDC)
 
-            print ('')
-            if self.state['ERROR']:
-                print(_C.LIME + 'Error: No' + _C.ENDC)
-            else:
-                print(_C.RED + 'Error: Yes' + _C.ENDC)
-            if self.state['ERROR485']:
-                print(_C.LIME + 'RS485 Error: No' + _C.ENDC)
-            else:
-                print(_C.RED + 'RS485 Error: Yes' + _C.ENDC)
+        print ('')
+        if self.state['ENABLE-1']:
+            print(_C.LIME + 'Enable 1: ON' + _C.ENDC)
+        else:
+            print(_C.RED + 'Enable 1: OFF' + _C.ENDC)
+        if self.state['ENABLE-2']:
+            print(_C.LIME + 'Enable 2: ON' + _C.ENDC)
+        else:
+            print(_C.RED + 'Enable 2: OFF' + _C.ENDC)
+
+        print ('')
+        if self.state['ERROR']:
+            print(_C.LIME + 'Error: No' + _C.ENDC)
+        else:
+            print(_C.RED + 'Error: Yes' + _C.ENDC)
+        if self.state['ERROR485']:
+            print(_C.LIME + 'RS485 Error: No' + _C.ENDC)
+        else:
+            print(_C.RED + 'RS485 Error: Yes' + _C.ENDC)
         print('')

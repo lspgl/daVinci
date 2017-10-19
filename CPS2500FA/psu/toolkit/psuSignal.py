@@ -2,7 +2,30 @@ from .colors import Colors as _C
 
 
 def parseReturn1(signal):
-    pass
+    bytesignal = []
+    length = 2
+    for s in signal:
+        if isinstance(s, bytes):
+            snew = s
+        else:
+            snew = bytes(s, 'utf-8')
+        # snew = int(snew.replace("'", '').replace('b', '').replace('\\', '').replace('x', '0x'), 0)
+        bytesignal.append(snew)
+
+    stx = int.from_bytes(bytes(bytesignal[0]), byteorder='big')
+    adr = int.from_bytes(bytes(bytesignal[1]), byteorder='big')
+
+    data_raw = bytesignal[3:5]
+    data_raw = b''.join(data_raw)
+    data = int.from_bytes(bytes(data_raw), byteorder='big')
+    crc_raw = bytesignal[5:]
+    crc_raw = b''.join(crc_raw)
+    crc = int.from_bytes(bytes(crc_raw), byteorder='big')
+    # data = round(data * 40 / 65535, 2)
+    bytesignal = [stx, adr, data, crc]
+    payload = {'adr': adr, 'voltage': data, 'crc': crc}
+
+    return (bytesignal, length, payload)
 
 
 def parseReturn2(signal):
@@ -79,3 +102,18 @@ def paddedHex(value):
         split = str_hex.split('x')
         str_hex = split[0] + 'x' + '0' + split[-1]
         return str_hex
+
+
+def fullByteToDec(fullByte, maxval):
+    value = fullByte / 65535 * maxval
+    return value
+
+
+def splitByteToDec(splitByte, res=10.6):
+    integer_res = int(res)
+    binary = bin(splitByte)[2:].zfill(16)
+    integer = int(binary[:integer_res], 2)
+    frac = int(binary[integer_res:], 2)
+    frac = frac / 10**len(str(frac))
+    value = integer + frac
+    return value
