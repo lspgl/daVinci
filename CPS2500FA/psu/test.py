@@ -18,7 +18,7 @@ def Test(psu):
     #input(_C.BOLD + _C.MAGENTA + "Ready for turn on [Press any key]" + _C.ENDC)
     psu.turnOn()
     print()
-    psu.setCurrentLimit(limit=1)
+    psu.setCurrentLimit(current=1)
     print()
     # Voltage ramping test
     psu.setVoltage(voltage=5)
@@ -36,7 +36,6 @@ def Test(psu):
     print()
     psu.getPhysics()
     print()
-    psu.setVoltage(voltage=0)
     print()
     psu.getCurrentLimit()
     print()

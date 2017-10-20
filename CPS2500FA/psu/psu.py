@@ -10,6 +10,14 @@ from functools import wraps
 class PSU:
 
     def __init__(self, waitForConn=True):
+        """
+        Main power supply class handling a single unit.
+
+        Parameters
+        ----------
+        waitForConn: bool
+            Waiting for Tinkerforge controller to be plugged in
+        """
         self.db = DB()
         self.entries = self.db.db
         self.c = controller.Controller()
@@ -21,7 +29,7 @@ class PSU:
         self.imax = 66.0  # Maximal current limit
         self.vmax = 40.0  # Maximal voltage limit
         self.vmax_ret = 48.0  # Maximal voltage readback
-        self.vmin = 0.0
+        self.vmin = 5.0
 
         self.initialize()
         if waitForConn:
@@ -35,6 +43,14 @@ class PSU:
             print(_C.BOLD + _C.RED + 'Tinkerforge controller not connected')
 
     def initialize(self):
+        """
+        Try to initialize the controller.
+
+        Returns
+        -------
+        bool
+            True for success, False for failure
+        """
         self.controller_connected = self.c.connect()
         if self.controller_connected:
             # Initialize digital and serial interfaces
@@ -46,7 +62,20 @@ class PSU:
         return False
 
     def _requiresController(func):
-        # Decorator to ensure the tinkerforge controller is connected
+        """
+        Decorator to require a connected controller.
+        If no controller is connected a message is shown and the function is not executed
+
+        Parameters
+        ----------
+        func: function
+            Function which has the requirement
+
+        Returns
+        -------
+        func or None
+            func is returned if the controller is connected, otherwise None
+        """
         @wraps(func)
         def wrapper(self, *args, **kwargs):
             if self.controller_connected:
@@ -58,7 +87,21 @@ class PSU:
         return wrapper
 
     def _requiresPSU(func):
-        # Decorator to ensure the power supply is connected
+        """
+        Decorator to require a connected power supply.
+        If no power supply is connected a message is shown and the function is not executed.
+        Connectivity is established during the setAddr method.
+
+        Parameters
+        ----------
+        func: function
+            Function which has the requirement
+
+        Returns
+        -------
+        func or None
+            func is returned if the power supply is connected, otherwise None
+        """
         @wraps(func)
         def wrapper(self, *args, **kwargs):
             if self.psu_connected:
@@ -71,6 +114,14 @@ class PSU:
 
     @_requiresController
     def stateDigital(self):
+        """
+        Query the state of the digital outputs and print a human readable output.
+
+        Returns
+        -------
+        gpio.state: dict
+            Dictionary with bools for each digital value as specified in the interface spec.
+        """
         self.gpio.update()
         self.gpio.status()
         return self.gpio.state
@@ -78,7 +129,26 @@ class PSU:
     @_requiresPSU
     @_requiresController
     def read_value(self, key, verbose=False, autowipe=True, **kwargs):
-        # Generic value reader for values in DB
+        """
+        Generic value reader from the command databse
+
+        Parameters
+        ----------
+        key: int
+            command number as specified in the interface spec
+        verbose: bool, optional
+            print all rs485 signals human readable
+        autowipe: bool, optional
+            wipe the cache after the value is collected
+
+        Returns
+        -------
+        payload: dict
+            Dictionary with 'adr', 'cmd', 'data' and 'crc' keys which carry
+            the response from the power supply over RS485-2.
+        entry: dict
+            Dictionary entry from the command database of the executed command.
+        """
         entry = self.entries[key]
         if verbose == 'v' or verbose == 'vv':
             print(_C.CYAN + entry['desc'] + ': ' + _C.ENDC, end='')
@@ -119,6 +189,19 @@ class PSU:
     @_requiresPSU
     @_requiresController
     def cache_value(self, key, verbose=False, **kwargs):
+        """
+        Generic value reader from the command databse.
+        Function does not wait for the value to be returned.
+        The value is written to the cache through a threadsafe callback
+        and can be querried from the cache at a later point.
+
+        Parameters
+        ----------
+        key: int
+            command number as specified in the interface spec
+        verbose: bool, optional
+            print all rs485 signals human readable
+        """
         # Generic value cacher for values in db
         entry = self.entries[key]
         # print(_C.CYAN + 'Caching: ' + entry['desc'] + _C.ENDC)
@@ -146,6 +229,21 @@ class PSU:
     @_requiresPSU
     @_requiresController
     def setVoltage(self, voltage, verbose=False):
+        """
+        Set a voltage setpoint over RS485-1
+
+        Parameters
+        ----------
+        voltage: float
+            voltage in V to which the setpoint is set
+        verbose: bool, optional
+            print all rs485 signals human readable
+
+        Returns
+        -------
+        v_ret: float
+            voltage response from RS485-1 in V
+        """
         if not (isinstance(voltage, float) or isinstance(voltage, int)):
             print(_C.RED + 'Invalid voltage setpoint' + _C.ENDC)
             return
@@ -165,6 +263,19 @@ class PSU:
     @_requiresPSU
     @_requiresController
     def getOn(self, verbose=False):
+        """
+        Query the ON/OFF state of the power supply
+
+        Parameters
+        ----------
+        verbose: bool, optional
+            print all rs485 signals human readable
+
+        Returns
+        -------
+        engaged: bool
+            True if the power supply is turned on, False if off
+        """
         signal = self.serial.send_and_recieve(self.adr, 0x00, data=None, length=0, verbose=verbose)
         if signal['data'] == 1:
             print(_C.LIME + 'Power supply turned on' + _C.ENDC)
@@ -174,15 +285,28 @@ class PSU:
             self.engaged = False
         # self.write2(adr=adr, cmd=0x00, data=None, length=0, verbose=verbose)
         if verbose:
-            print ('')
+            print('')
         return self.engaged
 
     @_requiresPSU
     @_requiresController
     def turnOff(self, verbose=False):
+        """
+        Turn the power supply off
+
+        Parameters
+        ----------
+        verbose: bool, optional
+            print all rs485 signals human readable
+
+        Returns
+        -------
+        int
+            0 if the unit turned off without error, error code otherwise
+        """
         print(_C.BOLD + _C.YEL + '----- Turning off ----' + _C.ENDC)
-        limit = 0
-        self.setCurrentLimit(limit, verbose=verbose)
+        current = 0
+        self.setCurrentLimit(current=0, verbose=verbose)
 
         self.gpio.disable(1, verbose=verbose)
         self.gpio.disable(2, verbose=verbose)
@@ -197,13 +321,25 @@ class PSU:
         self.getOn(verbose=verbose)
         print(_C.BOLD + _C.YEL + '----------------------' + _C.ENDC)
         if retval == 0 and not self.engaged:
-            return True
-        return False
+            return retval
+        return retval
 
     @_requiresPSU
     @_requiresController
     def turnOn(self, verbose=False):
-        # Turn on sequence
+        """
+        Turn the power supply on
+
+        Parameters
+        ----------
+        verbose: bool, optional
+            print all rs485 signals human readable
+
+        Returns
+        -------
+        int
+            0 if the unit turned on without error, error code otherwise
+        """
         # Enable digital inputs
         self.gpio.enable(1, verbose=verbose)
         self.gpio.enable(2, verbose=verbose)
@@ -222,37 +358,38 @@ class PSU:
         self.getOn(verbose=verbose)
         print(_C.BOLD + _C.CYAN + '----------------------' + _C.ENDC)
         if retval == 0 and self.engaged:
-            return True
-        return False
+            return retval
+        return retval
 
     @_requiresPSU
     @_requiresController
-    def cachePhysics(self):
-        for key in self.db.physkeys:
-            self.cache_value(key, verbose=False)
-        occured = []
-        uniqueCache = []
-        for e in reversed(self.c.cache[1]):
-            cmd = e[2]['cmd']
-            if cmd not in occured:
-                uniqueCache.append(e)
-            occured.append(cmd)
-        self.c.cache[1] = uniqueCache[::-1]
+    def setCurrentLimit(self, current, verbose=False):
+        """
+        Set the current limit of the power supply
 
-    @_requiresPSU
-    @_requiresController
-    def setCurrentLimit(self, limit, verbose=False):
-        if not (isinstance(limit, float) or isinstance(limit, int)):
+        Parameters
+        ----------
+        current: float
+            current limit in A
+        verbose: bool, optional
+            print all rs485 signals human readable
+
+        Returns
+        -------
+        int
+            0 if the limit is set without error, error code otherwise
+        """
+        if not (isinstance(current, float) or isinstance(current, int)):
             print('Invalid current limit')
             return
-        if limit > self.imax:
+        if current > self.imax:
             print('Current Limit cant be larger than ' + str(self.imax) + 'A')
             return
-        if limit < 0:
+        if current < 0:
             print('Current limit has to be larger than 0')
             return
-        print(_C.BLUE + 'Setting current limit to ' + str(limit) + 'A' + _C.ENDC)
-        limit_data = int((float(limit) / self.imax) * 65535)
+        print(_C.BLUE + 'Setting current limit to ' + str(current) + 'A' + _C.ENDC)
+        limit_data = int((float(current) / self.imax) * 65535)
         signal = self.serial.send_and_recieve(self.adr, 0x04, data=limit_data, length=2, verbose=verbose, timeout=50)
         retval = signal['data']
         return retval
@@ -260,13 +397,46 @@ class PSU:
     @_requiresPSU
     @_requiresController
     def getCurrentLimit(self, verbose=False):
+        """
+        Get the current limit of the power supply
+
+        Parameters
+        ----------
+        verbose: bool, optional
+            print all rs485 signals human readable
+
+        Returns
+        -------
+        retval: float
+            current limit in A
+        """
         signal = self.serial.send_and_recieve(self.adr, 0x03, verbose=verbose)
-        retval = signal['data'] / 65535 * self.imax
-        print(_C.BLUE + 'Current limit at ' + str(round(retval, 2)) + 'A' + _C.ENDC)
-        return retval
+        current = signal['data'] / 65535 * self.imax
+        print(_C.BLUE + 'Current limit at ' + str(round(current, 2)) + 'A' + _C.ENDC)
+        return current
 
     @_requiresController
     def setAddr(self, adr, verbose=False):
+        """
+        Go through the complete addressing procedure of the power supply
+        This command will overwrite an already existing address.
+
+        The on-state is querried immediately after the address is set to
+        check for a response (if it's on or off is irrelevant) and consequently
+        sets the psu_connected flag.
+
+        Parameters
+        ----------
+        adr: int
+            address in the range 0-255
+        verbose: bool, optional
+            print all rs485 signals human readable
+
+        Returns
+        -------
+        adr: int or None
+            returns the address if successfull, otherwise None
+        """
         print(_C.BOLD + _C.CYAN + '---- Setting addr ----' + _C.ENDC)
         print(_C.LIME + 'Address: ' + str(hex(adr)) + _C.ENDC)
         self.adr = adr
@@ -283,10 +453,19 @@ class PSU:
             self.adr = None
             print(_C.RED + 'Address failure: No PSU detected')
         print(_C.BOLD + _C.CYAN + '----------------------' + _C.ENDC)
+        return self.adr
 
     @_requiresController
     def resetAddr(self, verbose=False):
-        # Resetting the device address of all devices in the domain
+        """
+        Reset the address of a power supply.
+        If multiple supplies are connected this will reset all of them.
+
+        Parameters
+        ----------
+        verbose: bool, optional
+            print all rs485 signals human readable
+        """
         self.adr = None
         self.serial.write2(adr=0x00, cmd=0x06, data=0x1234, length=2, verbose=verbose)
         signal = self.serial.send_and_recieve(self.adr, 0x00, data=None, length=0, verbose=verbose)
@@ -296,6 +475,26 @@ class PSU:
     @_requiresPSU
     @_requiresController
     def getPhysics(self, verbose=False):
+        """
+        Get the physically measurable values from the power supply
+
+        Parameters
+        ----------
+        verbose: bool, optional
+            print all rs485 signals human readable
+
+        Returns
+        -------
+        phys: dict
+            Dictionary with a tuple for each property: (value, cmd)
+            The dictionary is indexed with a human readable key:
+            'vout': output voltage
+            'iout': output current
+            'pout': output power
+            'vin': input voltage
+            'fin': input frequency
+            'temp': temperature
+        """
         phys_hex = {key: self.read_value(key, verbose=False, autowipe=True)
                     [0]['data'] for key in self.db.physkeys}
 
@@ -315,6 +514,21 @@ class PSU:
     @_requiresPSU
     @_requiresController
     def getError(self, verbose=False):
+        """
+        Get the error mask
+        If an error is in the mask, the type of the error
+        is looked up in errormask.py and printed
+
+        Parameters
+        ----------
+        verbose: bool, optional
+            print all rs485 signals human readable
+
+        Returns
+        -------
+        err: str
+            16bit binary error mask, MSB first
+        """
         print(_C.CYAN + _C.BOLD + 'Error mask' + _C.ENDC)
         payload = self.serial.send_and_recieve(adr=self.adr, cmd=0x16)
         err = format(payload['data'], '016b')[::-1]
@@ -329,6 +543,19 @@ class PSU:
     @_requiresPSU
     @_requiresController
     def clearError(self, verbose=False):
+        """
+        Clear the error mask
+
+        Parameters
+        ----------
+        verbose: bool, optional
+            print all rs485 signals human readable
+
+        Returns
+        -------
+        retval: int
+            0 if cleared successfull, otherwise error code
+        """
         print(_C.CYAN + _C.BOLD + 'Clearing error mask' + _C.ENDC)
         # payload = self.serial.send_and_recieve(adr=self.adr,
         #                                           cmd=0x23)
@@ -344,8 +571,21 @@ class PSU:
 
     @_requiresPSU
     @_requiresController
-    def deviceInfo(self):
-        info = {key: hex(self.read_value(key, verbose=False, autowipe=True)
+    def deviceInfo(self, verbose=False):
+        """
+        Get the hardware info of the device
+
+        Parameters
+        ----------
+        verbose: bool, optional
+            print all rs485 signals human readable
+
+        Returns
+        -------
+        info: dict
+            dictionary indexed with the command key and the returned entry as value
+        """
+        info = {key: hex(self.read_value(key, verbose=verbose, autowipe=True)
                          [0]['data']) for key in self.db.devicekeys}
         print(_C.CYAN + _C.BOLD + 'Device info' + _C.ENDC)
         for key in info:

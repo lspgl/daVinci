@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<meta charset="utf-8">
+<title>CPS Command Interface</title>
+<style>@charset "utf-8";
+
+html {
+	height:100%;
+	margin:0;
+	max-width: 100%;
+	overflow-x: hidden;
+}
+
+body {
+	background-color:#fff;
+	font-family:Roboto;
+	color:#2b2b2b;
+	margin:0px;
+	max-width: 100%;
+	overflow-x: hidden;
+}
+
+.headlink{
+	text-decoration: None !important;
+	color: #2b2b2b;
+}
+
+#docWrapper{
+  white-space: pre-wrap;
+  margin-left:40px;
+	display: block;
+	width: auto;
+	height: auto;
+	overflow: visible;
+}
+
+#header {
+	background-color:#00695C;
+  color:#fff;
+  font-size: 30px;
+	height:120px;
+	width: 100%;
+	padding:30px 40px 0px 40px;
+  line-height:30px;
+	box-sizing: border-box;
+	box-shadow: 0px 5px 20px rgba(0,0,0,0.1);
+}
+
+.mod_name {
+	font-weight: 300;
+	font-style: italic;
+	color:#9d9d9d;
+}
+
+.func_name {
+	font-weight: 700;
+	color:#00695c;
+}
+
+.docstring {
+	margin-left:40px;
+}
+
+.paramTitle{
+	color: #00695C
+}
+
+.params{
+	margin-left:40px;
+}
+
+.variable {
+	font-weight: 700;
+}
+
+.type {
+	font-weight: 300;
+	font-style: italic;
+}
+
+.variable_desc {
+	margin-left:40px;
+}
+
+@media print {
+							 #docWrapper{
+								width: 100%;
+								height: 100%;
+								display: block;
+								width: auto;
+								height: auto;
+								overflow: visible;
+							 }
+						 }
+</style>
+
+<link href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i" rel="stylesheet">
+<link rel="icon"
+      type="image/x-icon"
+      href="img/favicon.ico">
+</head>
+<body>
+<div id='header'>
+CPS Command Interface<br />
+<span style='font-weight:300; font-size:20px'>Top level API</span>
+</div>
+<div id=docWrapper>
+<hr><span class=mod_name>PSU.</span><span class=func_name>__init__</span>(self, waitForConn=True)
+<div class=docstring>
+Main power supply class handling a single unit.
+
+<span class=paramTitle>Parameters:</span><div class=params><span class=variable>waitForConn</span>: <span class=type>bool</span>
+<div class=variable_desc>Waiting for Tinkerforge controller to be plugged in
+</div></div></div>
+
+<hr><span class=mod_name>PSU.</span><span class=func_name>_requiresController</span>(func)
+<div class=docstring>
+Decorator to require a connected controller.
+If no controller is connected a message is shown and the function is not executed
+
+<span class=paramTitle>Parameters:</span><div class=params><span class=variable>func</span>: <span class=type>function</span>
+<div class=variable_desc>Function which has the requirement
+</div></div>
+<span class=paramTitle>Returns:</span><div class=params><span class=type>func or None</span>
+<div class=variable_desc>func is returned if the controller is connected, otherwise None
+</div></div></div>
+
+<hr><span class=mod_name>PSU.</span><span class=func_name>_requiresPSU</span>(func)
+<div class=docstring>
+Decorator to require a connected power supply.
+If no power supply is connected a message is shown and the function is not executed.
+Connectivity is established during the setAddr method.
+
+<span class=paramTitle>Parameters:</span><div class=params><span class=variable>func</span>: <span class=type>function</span>
+<div class=variable_desc>Function which has the requirement
+</div></div>
+<span class=paramTitle>Returns:</span><div class=params><span class=type>func or None</span>
+<div class=variable_desc>func is returned if the power supply is connected, otherwise None
+</div></div></div>
+
+<hr><span class=mod_name>PSU.</span><span class=func_name>cache_value</span>(self, key, verbose=False, **kwargs)
+<div class=docstring>
+Generic value reader from the command databse.
+Function does not wait for the value to be returned.
+The value is written to the cache through a threadsafe callback
+and can be querried from the cache at a later point.
+
+<span class=paramTitle>Parameters:</span><div class=params><span class=variable>key</span>: <span class=type>int</span>
+<div class=variable_desc>command number as specified in the interface spec
+</div><span class=variable>verbose</span>: <span class=type>bool, optional</span>
+<div class=variable_desc>print all rs485 signals human readable
+</div></div></div>
+
+<hr><span class=mod_name>PSU.</span><span class=func_name>clearError</span>(self, verbose=False)
+<div class=docstring>
+Clear the error mask
+
+<span class=paramTitle>Parameters:</span><div class=params><span class=variable>verbose</span>: <span class=type>bool, optional</span>
+<div class=variable_desc>print all rs485 signals human readable
+</div></div>
+<span class=paramTitle>Returns:</span><div class=params><span class=variable>retval</span>: <span class=type>int</span>
+<div class=variable_desc>0 if cleared successfull, otherwise error code
+</div></div></div>
+
+<hr><span class=mod_name>PSU.</span><span class=func_name>deviceInfo</span>(self, verbose=False)
+<div class=docstring>
+Get the hardware info of the device
+
+<span class=paramTitle>Parameters:</span><div class=params><span class=variable>verbose</span>: <span class=type>bool, optional</span>
+<div class=variable_desc>print all rs485 signals human readable
+</div></div>
+<span class=paramTitle>Returns:</span><div class=params><span class=variable>info</span>: <span class=type>dict</span>
+<div class=variable_desc>dictionary indexed with the command key and the returned entry as value
+</div></div></div>
+
+<hr><span class=mod_name>PSU.</span><span class=func_name>formatting_function</span>(self, key, entry, payload)
+<div class=docstring>None</div>
+
+<hr><span class=mod_name>PSU.</span><span class=func_name>getCache</span>(self)
+<div class=docstring>None</div>
+
+<hr><span class=mod_name>PSU.</span><span class=func_name>getCurrentLimit</span>(self, verbose=False)
+<div class=docstring>
+Get the current limit of the power supply
+
+<span class=paramTitle>Parameters:</span><div class=params><span class=variable>verbose</span>: <span class=type>bool, optional</span>
+<div class=variable_desc>print all rs485 signals human readable
+</div></div>
+<span class=paramTitle>Returns:</span><div class=params><span class=variable>retval</span>: <span class=type>float</span>
+<div class=variable_desc>current limit in A
+</div></div></div>
+
+<hr><span class=mod_name>PSU.</span><span class=func_name>getError</span>(self, verbose=False)
+<div class=docstring>
+Get the error mask
+If an error is in the mask, the type of the error
+is looked up in errormask.py and printed
+
+<span class=paramTitle>Parameters:</span><div class=params><span class=variable>verbose</span>: <span class=type>bool, optional</span>
+<div class=variable_desc>print all rs485 signals human readable
+</div></div>
+<span class=paramTitle>Returns:</span><div class=params><span class=variable>err</span>: <span class=type>str</span>
+<div class=variable_desc>16bit binary error mask, MSB first
+</div></div></div>
+
+<hr><span class=mod_name>PSU.</span><span class=func_name>getOn</span>(self, verbose=False)
+<div class=docstring>
+Query the ON/OFF state of the power supply
+
+<span class=paramTitle>Parameters:</span><div class=params><span class=variable>verbose</span>: <span class=type>bool, optional</span>
+<div class=variable_desc>print all rs485 signals human readable
+</div></div>
+<span class=paramTitle>Returns:</span><div class=params><span class=variable>engaged</span>: <span class=type>bool</span>
+<div class=variable_desc>True if the power supply is turned on, False if off
+</div></div></div>
+
+<hr><span class=mod_name>PSU.</span><span class=func_name>getPhysics</span>(self, verbose=False)
+<div class=docstring>
+Get the physically measurable values from the power supply
+
+<span class=paramTitle>Parameters:</span><div class=params><span class=variable>verbose</span>: <span class=type>bool, optional</span>
+<div class=variable_desc>print all rs485 signals human readable
+</div></div>
+<span class=paramTitle>Returns:</span><div class=params><span class=variable>phys</span>: <span class=type>dict</span>
+<div class=variable_desc>Dictionary with a tuple for each property: (value, cmd)
+The dictionary is indexed with a human readable key:
+'vout': output voltage
+'iout': output current
+'pout': output power
+'vin': input voltage
+'fin': input frequency
+'temp': temperature
+</div></div></div>
+
+<hr><span class=mod_name>PSU.</span><span class=func_name>initialize</span>(self)
+<div class=docstring>
+Try to initialize the controller.
+
+<span class=paramTitle>Returns:</span><div class=params><span class=type>bool</span>
+<div class=variable_desc>True for success, False for failure
+</div></div></div>
+
+<hr><span class=mod_name>PSU.</span><span class=func_name>read_value</span>(self, key, verbose=False, autowipe=True, **kwargs)
+<div class=docstring>
+Generic value reader from the command databse
+
+<span class=paramTitle>Parameters:</span><div class=params><span class=variable>key</span>: <span class=type>int</span>
+<div class=variable_desc>command number as specified in the interface spec
+</div><span class=variable>verbose</span>: <span class=type>bool, optional</span>
+<div class=variable_desc>print all rs485 signals human readable
+</div><span class=variable>autowipe</span>: <span class=type>bool, optional</span>
+<div class=variable_desc>wipe the cache after the value is collected
+</div></div>
+<span class=paramTitle>Returns:</span><div class=params><span class=variable>payload</span>: <span class=type>dict</span>
+<div class=variable_desc>Dictionary with 'adr', 'cmd', 'data' and 'crc' keys which carry
+the response from the power supply over RS485-2.
+</div><span class=variable>entry</span>: <span class=type>dict</span>
+<div class=variable_desc>Dictionary entry from the command database of the executed command.
+</div></div></div>
+
+<hr><span class=mod_name>PSU.</span><span class=func_name>resetAddr</span>(self, verbose=False)
+<div class=docstring>
+Reset the address of a power supply.
+If multiple supplies are connected this will reset all of them.
+
+<span class=paramTitle>Parameters:</span><div class=params><span class=variable>verbose</span>: <span class=type>bool, optional</span>
+<div class=variable_desc>print all rs485 signals human readable
+</div></div></div>
+
+<hr><span class=mod_name>PSU.</span><span class=func_name>setAddr</span>(self, adr, verbose=False)
+<div class=docstring>
+Go through the complete addressing procedure of the power supply
+This command will overwrite an already existing address.
+
+The on-state is querried immediately after the address is set to
+check for a response (if it's on or off is irrelevant) and consequently
+sets the psu_connected flag.
+
+<span class=paramTitle>Parameters:</span><div class=params><span class=variable>adr</span>: <span class=type>int</span>
+<div class=variable_desc>address in the range 0-255
+</div><span class=variable>verbose</span>: <span class=type>bool, optional</span>
+<div class=variable_desc>print all rs485 signals human readable
+</div></div>
+<span class=paramTitle>Returns:</span><div class=params><span class=variable>adr</span>: <span class=type>int or None</span>
+<div class=variable_desc>returns the address if successfull, otherwise None
+</div></div></div>
+
+<hr><span class=mod_name>PSU.</span><span class=func_name>setCurrentLimit</span>(self, current, verbose=False)
+<div class=docstring>
+Set the current limit of the power supply
+
+<span class=paramTitle>Parameters:</span><div class=params><span class=variable>current</span>: <span class=type>float</span>
+<div class=variable_desc>current limit in A
+</div><span class=variable>verbose</span>: <span class=type>bool, optional</span>
+<div class=variable_desc>print all rs485 signals human readable
+</div></div>
+<span class=paramTitle>Returns:</span><div class=params><span class=type>int</span>
+<div class=variable_desc>0 if the limit is set without error, error code otherwise
+</div></div></div>
+
+<hr><span class=mod_name>PSU.</span><span class=func_name>setVoltage</span>(self, voltage, verbose=False)
+<div class=docstring>
+Set a voltage setpoint over RS485-1
+
+<span class=paramTitle>Parameters:</span><div class=params><span class=variable>voltage</span>: <span class=type>float</span>
+<div class=variable_desc>voltage in V to which the setpoint is set
+</div><span class=variable>verbose</span>: <span class=type>bool, optional</span>
+<div class=variable_desc>print all rs485 signals human readable
+</div></div>
+<span class=paramTitle>Returns:</span><div class=params><span class=variable>v_ret</span>: <span class=type>float</span>
+<div class=variable_desc>voltage response from RS485-1 in V
+</div></div></div>
+
+<hr><span class=mod_name>PSU.</span><span class=func_name>stateDigital</span>(self)
+<div class=docstring>
+Query the state of the digital outputs and print a human readable output.
+
+<span class=paramTitle>Returns:</span><div class=params><span class=variable>gpio.state</span>: <span class=type>dict</span>
+<div class=variable_desc>Dictionary with bools for each digital value as specified in the interface spec.
+</div></div></div>
+
+<hr><span class=mod_name>PSU.</span><span class=func_name>turnOff</span>(self, verbose=False)
+<div class=docstring>
+Turn the power supply off
+
+<span class=paramTitle>Parameters:</span><div class=params><span class=variable>verbose</span>: <span class=type>bool, optional</span>
+<div class=variable_desc>print all rs485 signals human readable
+</div></div>
+<span class=paramTitle>Returns:</span><div class=params><span class=type>int</span>
+<div class=variable_desc>0 if the unit turned off without error, error code otherwise
+</div></div></div>
+
+<hr><span class=mod_name>PSU.</span><span class=func_name>turnOn</span>(self, verbose=False)
+<div class=docstring>
+Turn the power supply on
+
+<span class=paramTitle>Parameters:</span><div class=params><span class=variable>verbose</span>: <span class=type>bool, optional</span>
+<div class=variable_desc>print all rs485 signals human readable
+</div></div>
+<span class=paramTitle>Returns:</span><div class=params><span class=type>int</span>
+<div class=variable_desc>0 if the unit turned on without error, error code otherwise
+</div></div></div>
+
+</div>
+</body>
+</html>
+
