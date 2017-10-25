@@ -76,7 +76,7 @@ class RS485:
         print(signal)
         return signal
 
-    def voltage_and_recieve(self, adr, data, timeout=50, autowipe=True, verbose=False):
+    def voltage_and_recieve(self, adr, data, timeout=50, autowipe=True, verbose=False, getTime=False):
         cachesize_init = len(self.controller.cache[0])
         if verbose:
             print(_C.BOLD + '--------------------------' + _C.ENDC)
@@ -98,6 +98,8 @@ class RS485:
                 self.controller.wipeCache()
         if verbose:
             print('')
+        if getTime:
+            return recieved[-1], wait
         return recieved[-1]
 
     def send_and_recieve(self, adr, cmd, data=None, length=0, timeout=50, autowipe=True, verbose=False):

@@ -7,10 +7,10 @@ __location__ = os.path.realpath(
 from psu import PSU
 
 
-def getDoc():
+def getDocFromClass(cl):
     docDict = {}
 
-    for member in inspect.getmembers(PSU):
+    for member in inspect.getmembers(cl):
         if member[0][:2] != '__' or member[0] == '__init__':
             fname = str(member[0])
             sig = str(inspect.signature(member[1]))
@@ -137,7 +137,7 @@ def makeHtml(proc, fn='api.html'):
 if __name__ == '__main__':
     fn = 'api.template.html'
     proc, marker = parseTemplate(fn)
-    docDict = getDoc()
+    docDict = getDocFromClass(PSU)
     maincontent = formatDoc(docDict)
 
     proc[marker['maincontent']] = maincontent

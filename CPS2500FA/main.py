@@ -1,5 +1,5 @@
 from psu import PSU
-from psu.test import Test
+from psu import test
 from commander.application import App
 
 if __name__ == '__main__':
@@ -7,5 +7,6 @@ if __name__ == '__main__':
 
     # app = App(unit)
 
-    Test(unit)
+    # test.GeneralTest(unit)
+    test.SpeedTest(unit)
     # unit.cachePhysics()

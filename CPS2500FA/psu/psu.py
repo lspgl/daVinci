@@ -228,7 +228,7 @@ class PSU:
 
     @_requiresPSU
     @_requiresController
-    def setVoltage(self, voltage, verbose=False):
+    def setVoltage(self, voltage, verbose=False, getTime=False):
         """
         Set a voltage setpoint over RS485-1
 
@@ -238,11 +238,15 @@ class PSU:
             voltage in V to which the setpoint is set
         verbose: bool, optional
             print all rs485 signals human readable
+        getTime: bool, optional
+            return the response time of the command
 
         Returns
         -------
         v_ret: float
             voltage response from RS485-1 in V
+        time: float, optional
+            response time. Only in getTime is true
         """
         if not (isinstance(voltage, float) or isinstance(voltage, int)):
             print(_C.RED + 'Invalid voltage setpoint' + _C.ENDC)
@@ -253,12 +257,18 @@ class PSU:
         if voltage < self.vmin:
             print(_C.RED + 'Voltage setpoint has to be larger than ' + str(self.vmin) + 'V' + _C.ENDC)
             return
-        print(_C.CYAN + '⚡⚡⚡ Voltage setpoint @ ' + str(round(voltage, 2)) + 'V ⚡⚡⚡' + _C.ENDC)
+        #print(_C.CYAN + '⚡⚡⚡ Voltage setpoint @ ' + str(round(voltage, 2)) + 'V ⚡⚡⚡' + _C.ENDC)
         v_data = int((float(voltage) / self.vmax) * 65535)
-        v_ret_data = self.serial.voltage_and_recieve(self.adr, v_data)
+        if not getTime:
+            v_ret_data = self.serial.voltage_and_recieve(self.adr, v_data)
+        else:
+            v_ret_data, t = self.serial.voltage_and_recieve(self.adr, v_data, getTime=getTime)
         v_ret = v_ret_data['voltage'] / 65535 * self.vmax_ret
-        print(_C.YEL + '⚡⚡⚡ True voltage @ ' + str(round(v_ret, 2)) + 'V ⚡⚡⚡' + _C.ENDC)
-        return v_ret
+        #print(_C.YEL + '⚡⚡⚡ True voltage @ ' + str(round(v_ret, 2)) + 'V ⚡⚡⚡' + _C.ENDC)
+        if not getTime:
+            return v_ret
+        else:
+            return v_ret, t
 
     @_requiresPSU
     @_requiresController
