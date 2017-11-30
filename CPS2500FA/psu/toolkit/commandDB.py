@@ -18,7 +18,7 @@ class CommandDB:
 
         # Device info keys
         self.devicekeys = [0x18, 0x19, 0x1A,
-                           0x1B]
+                           0x1B, 0x1C]
         # Error keys
         self.errorkeys = [0x16, 0x17]
 
@@ -139,6 +139,11 @@ class CommandDB:
                          'length': 0,
                          'retval': 'val',
                          'rvl': 8}
+        self.db[0x1C] = {'desc': 'Type',
+                         'data': None,
+                         'length': 0,
+                         'retval': 'val',
+                         'rvl': 1}
         # Error lines ---------------------------------------------------
         self.db[0x20] = {'desc': 'Pulling ERROR line',
                          'data': None,

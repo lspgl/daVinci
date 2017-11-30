@@ -89,7 +89,8 @@ class RS485:
             pass
 
         if wait >= timeout:
-            print(_C.RED + 'Response Timeout' + _C.ENDC)
+            if verbose:
+                print(_C.RED + 'Response Timeout' + _C.ENDC)
             recieved = None
             return recieved
         else:
@@ -102,7 +103,7 @@ class RS485:
             return recieved[-1], wait
         return recieved[-1]
 
-    def send_and_recieve(self, adr, cmd, data=None, length=0, timeout=50, autowipe=True, verbose=False):
+    def send_and_recieve(self, adr, cmd, data=None, length=0, timeout=100, autowipe=True, verbose=False):
         cachesize_init = len(self.controller.cache[1])
 
         if verbose:
@@ -116,8 +117,9 @@ class RS485:
             pass
 
         if wait >= timeout:
-            print(_C.RED + 'Response Timeout' + _C.ENDC)
-            recieved = None
+            if verbose:
+                print(_C.RED + 'Response Timeout' + _C.ENDC)
+            recieved = {'adr': None, 'data': None}
             return recieved
         else:
             recieved = self.readCache(self.controller.cache[1], verbose=verbose, last=True)

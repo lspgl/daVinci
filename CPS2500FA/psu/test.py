@@ -1,5 +1,6 @@
 from .toolkit.colors import Colors as _C
 import time
+import sys
 
 
 def GeneralTest(psu):
@@ -21,19 +22,21 @@ def GeneralTest(psu):
     psu.setCurrentLimit(current=1)
     print()
     # Voltage ramping test
+    """
     psu.setVoltage(voltage=5)
-    time.sleep(1)
+    time.sleep(2)
     print()
     psu.getPhysics()
     print()
     psu.setVoltage(voltage=10)
-    time.sleep(1)
+    time.sleep(2)
     print()
     psu.getPhysics()
     print()
     psu.setVoltage(voltage=15)
-    time.sleep(1)
+    time.sleep(2)
     print()
+    """
     psu.getPhysics()
     print()
     print()
@@ -62,3 +65,13 @@ def SpeedTest(psu):
     print('Max respones time:', mx)
     print('Min respones time:', mn)
     psu.turnOff()
+
+
+def MulticastTest(psu):
+    psu.stateDigital()
+    print()
+    psu.setAddr(0x01)
+    print()
+    psu.getCurrentLimit()
+    print()
+    psu.setMaster()

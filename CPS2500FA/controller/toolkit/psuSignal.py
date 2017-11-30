@@ -68,7 +68,7 @@ def tablePrint(send_array, send_length, recieving=False):
         print(C1 + 'Recieving RS485: ' + _C.ENDC)
 
     formatted = ''.join(paddedHex(d) + ' | ' for d in send_array[:4])
-
+    print(send_array)
     if send_length != 0:
         header = (C1 + '| STX  | ADR  | CMD  | LEN  | DTA' +
                   (len(str(hex(send_array[4]))) - 3) * ' ' +
@@ -105,11 +105,15 @@ def paddedHex(value):
 
 
 def fullByteToDec(fullByte, maxval):
+    if fullByte is None:
+        return None
     value = fullByte / 65535 * maxval
     return value
 
 
 def splitByteToDec(splitByte, res=10.6):
+    if splitByte is None:
+        return None
     integer_res = int(res)
     binary = bin(splitByte)[2:].zfill(16)
     integer = int(binary[:integer_res], 2)

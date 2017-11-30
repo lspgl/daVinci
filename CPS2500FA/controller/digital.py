@@ -14,14 +14,16 @@ class Digital:
                 'CSB+',
                 'CSB-',
                 'ENABLE-1',
+                'ENABLE-1-PASSTHROUGH',
                 'ENABLE-2',
+                'ENABLE-2-PASSTHROUGH',
                 'TRIGGER',
                 'ADDR-OUT', ]
 
         for key in keys:
             self.state[key] = None
 
-        self.controller.io.set_port_configuration('a', 0b11100001, 'i', False)
+        self.controller.io.set_port_configuration('a', 0b11100111, 'i', False)
         self.controller.io.set_port_configuration('b', 0b01110001, 'o', False)
 
     def update(self):
@@ -32,6 +34,8 @@ class Digital:
         self.state['STATUS'] = bool(int(mask_a[0]))
         self.state['MAINS-NOK'] = bool(int(mask_a[1]))
         self.state['ERROR'] = bool(int(mask_a[2]))
+        self.state['ENABLE-1-PASSTHROUGH'] = bool(int(mask_a[6]))
+        self.state['ENABLE-2-PASSTHROUGH'] = bool(int(mask_a[5]))
         self.state['ADDR-OUT'] = bool(int(mask_a[7]))
 
         self.state['TRIGGER'] = bool(int(mask_b[1]))
@@ -74,6 +78,16 @@ class Digital:
         if i in [1, 2]:
             self.controller.io.set_port_configuration("b", 1 << 3 + i, 'o', False)
         self.update()
+
+    def getPassthrough(self, i, verbose=False):
+        if verbose:
+            print(_C.BOLD + '--------------------------' + _C.ENDC)
+            print(_C.BLUE + 'Reading passthrough ' + str(i) + _C.ENDC)
+        self.update()
+        if i in [1, 2]:
+            key = 'ENABLE-' + str(i) + '-PASSTHROUGH'
+            rv = self.state[key]
+        return rv
 
     def status(self):
         self.update()

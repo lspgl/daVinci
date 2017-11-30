@@ -1,0 +1,46 @@
+initializing
+    ADDR-OUT Signaling: PASS
+    Addressing: PASS
+
+setpoint
+    Current setpoint read: (PASS, 0.0)
+    Current setpoint write: (PASS, 0)
+    Current setpoint value: (PASS, 0.0009613183794918712)
+
+physics
+    Reading output voltage (0x10): (PASS, 3.3164568551155873)
+    Reading output current (0x11): (PASS, 0.4511787594415198)
+    Reading output power (0x12): (PASS, 1.1601739528496224)
+    Reading input voltage (0x13): (PASS, 231.26)
+    Reading input frequency (0x14): (PASS, 24.63)
+    Reading temperature (0x15): (PASS, 30.2)
+
+device
+    Power board HW version: PASS
+    Control board HW version: PASS
+    Firmware version: PASS
+    Serial number: PASS
+    Type: FAIL
+
+multicasting
+    Setting master: FAIL
+    Setting slave: FAIL
+
+voltage
+    Enable 1: PASS
+    Enable 2: PASS
+    Reading on-state: PASS
+    Turning on: FAIL
+    Turning off: PASS
+    Voltage command: PASS
+    Voltage RS485-1 value: FAIL
+    Voltage RS485-2 value: FAIL
+
+errorWarn
+    Mains NOK signal: PASS
+    Error mask read: PASS
+    Warning mask read: PASS
+    Error clear: FAIL
+    Warning clear: FAIL
+
+Passed 23 out of 31 test cases.
