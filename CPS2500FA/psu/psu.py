@@ -39,11 +39,20 @@ class PSU:
         self.engaged = False
 
         self.testing = False
+        self.PSUType = 'CPS2500'
 
-        self.imax = 66.0  # Maximal current limit
-        self.vmax = 40.0  # Maximal voltage limit
-        self.vmax_ret = 48.0  # Maximal voltage readback
-        self.vmin = 5.0
+        if self.PSUType == 'CPS3800':
+            self.imax = 100.0  # Maximal current limit
+            self.vmax = 55.0  # Maximal voltage limit
+            self.vmax_ret = 60.0  # Maximal voltage readback
+            self.vmin = 9.0
+        elif self.PSUType == 'CPS2500':
+            self.imax = 66.0  # Maximal current limit
+            self.vmax = 40.0  # Maximal voltage limit
+            self.vmax_ret = 48.0  # Maximal voltage readback
+            self.vmin = 5.0
+        else:
+            raise Exception('NO PSU TYPE')
 
     def _requiresPSU(func):
         """
@@ -122,7 +131,8 @@ class PSU:
                                                        verbose=vv,
                                                        autowipe=autowipe)
             else:
-                print(_C.RED + 'Missing data keyword for ' + str(hex(key)) + _C.ENDC)
+                print(_C.RED + 'Missing data keyword for ' +
+                      str(hex(key)) + _C.ENDC)
                 return
         if payload is None:
             return
@@ -167,7 +177,8 @@ class PSU:
                                             length=entry['length'],
                                             verbose=verbose)
             else:
-                print(_C.RED + 'Missing data keyword for ' + str(hex(key)) + _C.ENDC)
+                print(_C.RED + 'Missing data keyword for ' +
+                      str(hex(key)) + _C.ENDC)
         return
 
     @_requiresPSU
@@ -195,18 +206,24 @@ class PSU:
             print(_C.RED + 'Invalid voltage setpoint' + _C.ENDC)
             return
         if voltage > self.vmax:
-            print(_C.RED + 'Voltage setpoint cant be larger than ' + str(self.vmax) + 'V' + _C.ENDC)
+            print(_C.RED + 'Voltage setpoint cant be larger than ' +
+                  str(self.vmax) + 'V' + _C.ENDC)
             return
         if voltage < self.vmin:
-            print(_C.RED + 'Voltage setpoint has to be larger than ' + str(self.vmin) + 'V' + _C.ENDC)
+            print(_C.RED + 'Voltage setpoint has to be larger than ' +
+                  str(self.vmin) + 'V' + _C.ENDC)
             return
         # print(_C.CYAN + '⚡⚡⚡ Voltage setpoint @ ' + str(round(voltage, 2)) + 'V ⚡⚡⚡' + _C.ENDC)
         v_data = int((float(voltage) / self.vmax) * 65535)
         if not getTime:
             v_ret_data = self.serial.voltage_and_recieve(self.adr, v_data)
         else:
-            v_ret_data, t = self.serial.voltage_and_recieve(self.adr, v_data, getTime=getTime)
-        v_ret = v_ret_data['voltage'] / 65535 * self.vmax_ret
+            v_ret_data, t = self.serial.voltage_and_recieve(
+                self.adr, v_data, getTime=getTime)
+        try:
+            v_ret = v_ret_data['voltage'] / 65535 * self.vmax_ret
+        except TypeError:
+            v_ret = None
         # print(_C.YEL + '⚡⚡⚡ True voltage @ ' + str(round(v_ret, 2)) + 'V ⚡⚡⚡' + _C.ENDC)
         if not getTime:
             return v_ret
@@ -228,7 +245,8 @@ class PSU:
         engaged: bool
             True if the power supply is turned on, False if off
         """
-        signal = self.serial.send_and_recieve(self.adr, 0x00, data=None, length=0, verbose=verbose)
+        signal = self.serial.send_and_recieve(
+            self.adr, 0x00, data=None, length=0, verbose=verbose)
         if signal['data'] == 1:
             if verbose:
                 print(_C.LIME + 'Power supply turned on' + _C.ENDC)
@@ -264,11 +282,13 @@ class PSU:
         # self.gpio.disable(1, verbose=verbose)
         # self.gpio.disable(2, verbose=verbose)
 
-        signal = self.serial.send_and_recieve(adr=self.adr, cmd=0x01, data=0x0811, length=2, verbose=verbose)
+        signal = self.serial.send_and_recieve(
+            adr=self.adr, cmd=0x01, data=0x0811, length=2, verbose=verbose)
         retval = signal['data']
         if retval != 0:
             if verbose:
-                print(_C.RED + 'Error in turn off signal: ' + str(retval) + _C.ENDC)
+                print(_C.RED + 'Error in turn off signal: ' +
+                      str(retval) + _C.ENDC)
         else:
             if verbose:
                 print(_C.LIME + 'Turn off signal OK' + _C.ENDC)
@@ -305,11 +325,13 @@ class PSU:
         """
         if verbose:
             print(_C.BOLD + _C.CYAN + '----- Turning on -----' + _C.ENDC)
-        signal = self.serial.send_and_recieve(self.adr, 0x02, data=0x55AA, length=2, verbose=verbose)
+        signal = self.serial.send_and_recieve(
+            self.adr, 0x02, data=0x55AA, length=2, verbose=verbose)
         retval = signal['data']
         if verbose:
             if retval != 0:
-                print(_C.RED + 'Error in turn on signal: ' + str(retval) + _C.ENDC)
+                print(_C.RED + 'Error in turn on signal: ' +
+                      str(retval) + _C.ENDC)
             else:
                 print(_C.LIME + 'Turn on signal OK' + _C.ENDC)
         self.getOn(verbose=verbose)
@@ -346,9 +368,11 @@ class PSU:
             print('Current limit has to be larger than 0')
             return
         if verbose:
-            print(_C.BLUE + 'Setting current limit to ' + str(current) + 'A' + _C.ENDC)
+            print(_C.BLUE + 'Setting current limit to ' +
+                  str(current) + 'A' + _C.ENDC)
         limit_data = int((float(current) / self.imax) * 65535)
-        signal = self.serial.send_and_recieve(self.adr, 0x04, data=limit_data, length=2, verbose=verbose, timeout=50)
+        signal = self.serial.send_and_recieve(
+            self.adr, 0x04, data=limit_data, length=2, verbose=verbose, timeout=50)
         retval = signal['data']
         return retval
 
@@ -370,7 +394,8 @@ class PSU:
         signal = self.serial.send_and_recieve(self.adr, 0x03, verbose=verbose)
         current = signal['data'] / 65535 * self.imax
         if verbose:
-            print(_C.BLUE + 'Current limit at ' + str(round(current, 2)) + 'A' + _C.ENDC)
+            print(_C.BLUE + 'Current limit at ' +
+                  str(round(current, 2)) + 'A' + _C.ENDC)
         return current
 
     @_requiresPSU
@@ -502,7 +527,8 @@ class PSU:
         retval = payload['data']
         if verbose:
             if retval != 0:
-                print(_C.RED + 'Error in mask clearing: ' + _M.retcode[retval] + _C.ENDC)
+                print(_C.RED + 'Error in mask clearing: ' +
+                      _M.retcode[retval] + _C.ENDC)
             else:
                 print(_C.LIME + 'Error mask cleared' + _C.ENDC)
         return retval
@@ -529,7 +555,8 @@ class PSU:
         retval = payload['data']
         if verbose:
             if retval != 0:
-                print(_C.RED + 'Error in mask clearing: ' + _M.retcode[retval] + _C.ENDC)
+                print(_C.RED + 'Error in mask clearing: ' +
+                      _M.retcode[retval] + _C.ENDC)
             else:
                 print(_C.LIME + 'Warning mask cleared' + _C.ENDC)
         return retval
@@ -557,24 +584,29 @@ class PSU:
             if info[key] is not None:
                 info[key] = hex(info[key])
             if verbose:
-                print(_C.BLUE + self.entries[key]['desc'] + ': ' + str(info[key]) + _C.ENDC)
+                print(
+                    _C.BLUE + self.entries[key]['desc'] + ': ' + str(info[key]) + _C.ENDC)
         return info
 
     @_requiresPSU
     def setMaster(self, verbose=False):
-        signal = self.serial.send_and_recieve(self.adr, 0x24, data=0x01, length=1, verbose=verbose)
+        signal = self.serial.send_and_recieve(
+            self.adr, 0x24, data=0x01, length=1, verbose=verbose)
         return signal
 
     @_requiresPSU
     def setSlave(self, verbose=False):
-        signal = self.serial.send_and_recieve(self.adr, 0x24, data=0x00, length=1, verbose=verbose)
+        signal = self.serial.send_and_recieve(
+            self.adr, 0x24, data=0x00, length=1, verbose=verbose)
         return signal
 
     def queryConnection(self, verbose=False):
-        signal = self.serial.send_and_recieve(self.adr, 0x00, data=None, length=0, verbose=verbose)
+        signal = self.serial.send_and_recieve(
+            self.adr, 0x00, data=None, length=0, verbose=verbose)
         if signal['adr'] is None:
             if verbose:
-                print(_C.RED + 'Power supply on address ' + str(self.adr) + ' not found' + _C.ENDC)
+                print(_C.RED + 'Power supply on address ' +
+                      str(self.adr) + ' not found' + _C.ENDC)
             self.psu_connected = False
             return False
         else:

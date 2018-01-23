@@ -39,7 +39,9 @@ class SingleUnit:
         print()
         print(_C.BLUE + 'Initialization Test' + _C.ENDC)
         tests = {}
-
+        print('GETTING VC:')
+        self.c.getVC()
+        print('-----------')
         self.c.resetAddr()
         x5_pre = self.c.stateDigital()['ADDR-OUT']
         self.c.listenAdr()
@@ -107,15 +109,21 @@ class SingleUnit:
             for key in phys:
                 val, cmd = phys[key]
                 if val is None:
-                    print(_C.RED + self.cdb.db[cmd]['desc'] + '(' + str(hex(cmd)) + '): FAIL' + _C.ENDC)
-                    tests[self.cdb.db[cmd]['desc'] + '(' + str(hex(cmd)) + ')'] = (False, val)
+                    print(_C.RED + self.cdb.db[cmd]['desc'] +
+                          '(' + str(hex(cmd)) + '): FAIL' + _C.ENDC)
+                    tests[self.cdb.db[cmd]['desc'] +
+                          '(' + str(hex(cmd)) + ')'] = (False, val)
                 else:
-                    print(_C.LIME + self.cdb.db[cmd]['desc'] + ' (' + str(hex(cmd)) + '): PASS' + _C.ENDC)
-                    tests[self.cdb.db[cmd]['desc'] + ' (' + str(hex(cmd)) + ')'] = (True, val)
+                    print(_C.LIME + self.cdb.db[cmd]['desc'] +
+                          ' (' + str(hex(cmd)) + '): PASS' + _C.ENDC)
+                    tests[self.cdb.db[cmd]['desc'] +
+                          ' (' + str(hex(cmd)) + ')'] = (True, val)
         else:
             for key in self.cdb.physkeys:
-                print(_C.RED + self.cdb.db[key]['desc'] + ' (' + str(hex(key)) + '): FAIL' + _C.ENDC)
-                tests[self.cdb.db[key]['desc'] + ' (' + str(hex(key)) + ')'] = (False, None)
+                print(_C.RED + self.cdb.db[key]['desc'] +
+                      ' (' + str(hex(key)) + '): FAIL' + _C.ENDC)
+                tests[self.cdb.db[key]['desc'] +
+                      ' (' + str(hex(key)) + ')'] = (False, None)
         return tests
 
     def errorWarn(self):
@@ -133,7 +141,8 @@ class SingleUnit:
 
             while True:
                 t1 = time.time() - t0
-                print(_C.YEL + '    Timeout: ' + _C.MAGENTA + str(round(timeout - t1, 1)) + _C.ENDC, end='\r')
+                print(_C.YEL + '    Timeout: ' + _C.MAGENTA +
+                      str(round(timeout - t1, 1)) + _C.ENDC, end='\r')
                 nok1 = self.c.stateDigital()['MAINS-NOK']
                 if off and nok1:
                     cycle_success = True
@@ -144,7 +153,8 @@ class SingleUnit:
                     timeout_FLAG = True
                     break
             if timeout_FLAG:
-                input(_C.YEL + _C.BOLD + 'Turn power supply back on and press [ENTER]\n' + _C.ENDC)
+                input(_C.YEL + _C.BOLD +
+                      'Turn power supply back on and press [ENTER]\n' + _C.ENDC)
         if cycle_success:
             print(_C.LIME + 'Mains NOK signal: PASS' + _C.ENDC)
             tests['Mains NOK signal'] = True
@@ -246,7 +256,7 @@ class SingleUnit:
                 print(_C.RED + 'Enable ' + str(i) + ': FAIL' + _C.ENDC)
                 tests['Enable ' + str(i)] = False
         self.c.enable()
-        self.psu.setCurrentLimit(1)
+        self.psu.setCurrentLimit(5)
         offstate = self.psu.getOn()
         turnOn = self.psu.turnOn()
         onstate = self.psu.getOn()
@@ -263,6 +273,11 @@ class SingleUnit:
             except TypeError:
                 voltages_phys.append(None)
             time.sleep(0.1)
+            print('GETTING VC:')
+            self.c.getVC()
+            print('-----------')
+
+        input('Turn off voltage with [ENTER]')
 
         turnOff = self.psu.turnOff()
         offstate2 = self.psu.getOn()
@@ -350,7 +365,8 @@ class SingleUnit:
         nfails = outstr.count('FAIL')
         npass = outstr.count('PASS')
         ntests = nfails + npass
-        outstr += 'Passed ' + str(npass) + ' out of ' + str(ntests) + ' test cases.'
+        outstr += 'Passed ' + str(npass) + ' out of ' + \
+            str(ntests) + ' test cases.'
         with open('test_log.txt', 'w') as f:
             f.write(outstr)
 
