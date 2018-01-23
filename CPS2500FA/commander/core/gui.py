@@ -12,11 +12,10 @@ from .api import indicators, text, switches, physics
 
 class GUI(QMainWindow):
 
-    def __init__(self, app, psu, update_fct):
+    def __init__(self, app, update_fct):
         print('Initializing GUI')
         super(GUI, self).__init__()
         self.app = app
-        self.psu = psu
         # Load API handles
         self.indicators = indicators.Indicators()
         self.text = text.Text()
@@ -44,13 +43,14 @@ class GUI(QMainWindow):
         self.hardwareInfo()
 
         self.app.desktop().primaryScreen()
-        self.showFullScreen()
+        # self.showFullScreen()
+        self.resize(1500, 1000)
 
-        self.move(self.app.desktop().screenGeometry(1).topLeft())
+        # self.move(self.app.desktop().screenGeometry(1).topLeft())
 
         self.timer = QTimer(self)
         self.timer.setInterval(50)
-        self.timer.timeout.connect(update_fct)
+        # self.timer.timeout.connect(update_fct)
         self.timer.start()
 
     def mousePressEvent(self, event):

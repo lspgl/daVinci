@@ -1,13 +1,13 @@
 class Colors:
-    lightgray = '#323232'
-    midgray = '#202020'
-    darkgray = '#131313'
+    lightgray = '#0070aa'
+    midgray = '#dddddd'
+    darkgray = '#f7f7f7'
     white = '#ffffff'
 
-    textgray = '#9b9b9b'
-    highlight = '#00bfc6'
+    textgray = '#6e6e6e'
+    highlight = '#0070aa'
 
-    controlred = '#ff615f'
+    controlred = '#ce8585'
     controlyel = '#ffbd45'
     controlgreen = '#00ce4e'
 

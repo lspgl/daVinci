@@ -40,10 +40,19 @@ class PSU:
 
         self.testing = False
 
+        # CPS 2500
         self.imax = 66.0  # Maximal current limit
         self.vmax = 40.0  # Maximal voltage limit
         self.vmax_ret = 48.0  # Maximal voltage readback
         self.vmin = 5.0
+        self.pmax = 3168.0
+        """
+        # CPS 3800
+        self.imax = 100.0
+        self.vmax = 55.0
+        self.vmax_ret = 60.0
+        self.vmin = 10.0
+        self.pmax = 6000.0"""
 
     def _requiresPSU(func):
         """
@@ -198,15 +207,18 @@ class PSU:
             print(_C.RED + 'Voltage setpoint cant be larger than ' + str(self.vmax) + 'V' + _C.ENDC)
             return
         if voltage < self.vmin:
-            print(_C.RED + 'Voltage setpoint has to be larger than ' + str(self.vmin) + 'V' + _C.ENDC)
+            # print(_C.RED + 'Voltage setpoint has to be larger than ' + str(self.vmin) + 'V' + _C.ENDC)
             return
         # print(_C.CYAN + '⚡⚡⚡ Voltage setpoint @ ' + str(round(voltage, 2)) + 'V ⚡⚡⚡' + _C.ENDC)
-        v_data = int((float(voltage) / self.vmax) * 65535)
+        v_data = int((float(voltage) / self.vmax) * float(65535))
         if not getTime:
-            v_ret_data = self.serial.voltage_and_recieve(self.adr, v_data)
+            v_ret_data = self.serial.voltage_and_recieve(self.adr, v_data, verbose=verbose)
         else:
-            v_ret_data, t = self.serial.voltage_and_recieve(self.adr, v_data, getTime=getTime)
-        v_ret = v_ret_data['voltage'] / 65535 * self.vmax_ret
+            v_ret_data, t = self.serial.voltage_and_recieve(self.adr, v_data, getTime=getTime, verbose=verbose)
+        if v_ret_data is None:
+            v_ret = None
+        else:
+            v_ret = float(v_ret_data['voltage']) / float(65535) * self.vmax_ret
         # print(_C.YEL + '⚡⚡⚡ True voltage @ ' + str(round(v_ret, 2)) + 'V ⚡⚡⚡' + _C.ENDC)
         if not getTime:
             return v_ret
@@ -404,9 +416,9 @@ class PSU:
                 data = None
             phys_hex[key] = data
 
-        phys = {'vout': (psuSignal.fullByteToDec(phys_hex[0x10], 48), 0x10),
+        phys = {'vout': (psuSignal.fullByteToDec(phys_hex[0x10], self.vmax_ret), 0x10),
                 'iout': (psuSignal.fullByteToDec(phys_hex[0x11], 84), 0x11),
-                'pout': (psuSignal.fullByteToDec(phys_hex[0x12], 3168), 0x12),
+                'pout': (psuSignal.fullByteToDec(phys_hex[0x12], self.pmax), 0x12),
                 'vin': (psuSignal.splitByteToDec(phys_hex[0x13]), 0x13),
                 'fin': (psuSignal.splitByteToDec(phys_hex[0x14]), 0x14),
                 'temp': (psuSignal.splitByteToDec(phys_hex[0x15]), 0x15)}
@@ -469,15 +481,18 @@ class PSU:
         if verbose:
             print(_C.CYAN + _C.BOLD + 'Warning mask' + _C.ENDC)
         payload = self.serial.send_and_recieve(adr=self.adr, cmd=0x25)
-        warn = format(payload['data'], '016b')[::-1]
-        if '1' in warn:
-            for i, w in enumerate(warn):
-                if w == '1':
-                    if verbose:
-                        print(_C.RED + 'Warning: ' + _M.warning[i] + _C.ENDC)
+        if payload['adr'] is not None:
+            warn = format(payload['data'], '016b')[::-1]
+            if '1' in warn:
+                for i, w in enumerate(warn):
+                    if w == '1':
+                        if verbose:
+                            print(_C.RED + 'Warning: ' + _M.warning[i] + _C.ENDC)
+            else:
+                if verbose:
+                    print(_C.LIME + 'No warning' + _C.ENDC)
         else:
-            if verbose:
-                print(_C.LIME + 'No warning' + _C.ENDC)
+            warn = None
         return warn
 
     @_requiresPSU
