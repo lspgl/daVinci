@@ -2,6 +2,7 @@ from tinkerforge.ip_connection import IPConnection
 from tinkerforge.bricklet_io16 import BrickletIO16
 from tinkerforge.bricklet_rs485 import BrickletRS485
 from tinkerforge.brick_master import BrickMaster
+from tinkerforge.bricklet_voltage_current import BrickletVoltageCurrent
 
 from .toolkit.psuSignal import parseReturn1, parseReturn2
 from .toolkit.colors import Colors as _C
@@ -11,7 +12,8 @@ import sys
 
 
 from . import digital
-from .import rs485
+from . import rs485
+from . import analog
 
 
 class Controller:
@@ -26,13 +28,15 @@ class Controller:
         self.connect()
         if waitForConn:
             if not self.connected:
-                print(_C.BOLD + _C.YEL + 'Please connect the CPS Commander' + _C.ENDC)
+                print(_C.BOLD + _C.YEL +
+                      'Please connect the CPS Commander' + _C.ENDC)
                 while not self.connected:
                     self.connect()
         if self.connected:
             print(_C.BOLD + _C.CYAN + 'CPS Commander connected' + _C.ENDC)
             self.gpio = digital.Digital(self)
             self.serial = rs485.RS485(self)
+            self.analog = analog.Analog(self)
             self.gpio.update()
             self.state = self.gpio.state
         else:
@@ -56,12 +60,14 @@ class Controller:
 
     def connect(self):
         self.ipcon.connect(self.HOST, self.PORT)
-        self.ipcon.register_callback(IPConnection.CALLBACK_ENUMERATE, self.callback)
+        self.ipcon.register_callback(
+            IPConnection.CALLBACK_ENUMERATE, self.callback)
         self.connected = False
         self.ipcon.enumerate()
         time.sleep(.1)
         if self.connected:
             self.io = BrickletIO16(self.IO16_ID, self.ipcon)
+            self.vc = BrickletVoltageCurrent(self.VC_ID, self.ipcon)
             self.rs1 = BrickletRS485(self.RS485_1_ID, self.ipcon)
             self.rs2 = BrickletRS485(self.RS485_2_ID, self.ipcon)
             self.rs485 = [self.rs1, self.rs2]
@@ -96,8 +102,14 @@ class Controller:
             self.RS485_2_ID = uid
         elif position == 'd':
             self.RS485_1_ID = uid
+        elif position == 'a':
+            self.VC_ID = uid
 
         self.connected = True
+
+    def getVC(self):
+        vc = self.analog.getVC()
+        return vc
 
     def stateDigital(self, verbose=False):
         self.gpio.update()
@@ -160,7 +172,8 @@ class Controller:
             print(_C.LIME + 'Address: ' + str(hex(adr)) + _C.ENDC)
 
         # Setting Addr and closing channel
-        self.serial.write2(adr=0x00, cmd=0x05, data=adr, length=1, verbose=verbose)
+        self.serial.write2(adr=0x00, cmd=0x05, data=adr,
+                           length=1, verbose=verbose)
         # self.gpio.closeAddr(verbose=verbose)
         if verbose:
             print(_C.BOLD + _C.CYAN + '----------------------' + _C.ENDC)
@@ -176,5 +189,6 @@ class Controller:
         verbose: bool, optional
             print all rs485 signals human readable
         """
-        self.serial.write2(adr=0x00, cmd=0x06, data=0x1234, length=2, verbose=verbose)
+        self.serial.write2(adr=0x00, cmd=0x06, data=0x1234,
+                           length=2, verbose=verbose)
         return True
