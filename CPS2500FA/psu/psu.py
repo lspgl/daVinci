@@ -39,13 +39,29 @@ class PSU:
         self.engaged = False
 
         self.testing = False
-        self.PSUType = 'CPS2500'
+        self.PSUType = None
+
+        self.configureScale()
+
+        print('PSU Type:', self.PSUType)
+
+    def configureScale(self, psuType=None):
+        if psuType is None:
+            typeSignal = self.getType()
+            if typeSignal == 1:
+                self.PSUType = 'CPS3800'
+            elif typeSignal is None or typeSignal == 0:
+                self.PSUType = 'CPS2500'
+            else:
+                self.PSUType = None
+        else:
+            self.PSUType = psuType
 
         if self.PSUType == 'CPS3800':
             self.imax = 100.0  # Maximal current limit
             self.vmax = 55.0  # Maximal voltage limit
             self.vmax_ret = 60.0  # Maximal voltage readback
-            self.vmin = 9.0
+            self.vmin = 5.0
         elif self.PSUType == 'CPS2500':
             self.imax = 66.0  # Maximal current limit
             self.vmax = 40.0  # Maximal voltage limit
@@ -209,7 +225,7 @@ class PSU:
             print(_C.RED + 'Voltage setpoint cant be larger than ' +
                   str(self.vmax) + 'V' + _C.ENDC)
             return
-        if voltage < self.vmin:
+        if voltage < self.vmin and voltage != 0:
             print(_C.RED + 'Voltage setpoint has to be larger than ' +
                   str(self.vmin) + 'V' + _C.ENDC)
             return
@@ -587,6 +603,12 @@ class PSU:
                 print(
                     _C.BLUE + self.entries[key]['desc'] + ': ' + str(info[key]) + _C.ENDC)
         return info
+
+    @_requiresPSU
+    def getType(self, verbose=False):
+        signal = self.serial.send_and_recieve(
+            self.adr, 0x1C, data=None, length=0, verbose=verbose)
+        return signal['data']
 
     @_requiresPSU
     def setMaster(self, verbose=False):

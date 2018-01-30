@@ -13,25 +13,27 @@ import time
 import numpy as np
 
 
-class SingleUnit:
+class ParallelUnit:
 
-    def __init__(self, adr=0x01):
+    def __init__(self, adr1=0x01, adr2=0x02):
         self.c = Controller()
         # self.n = Network(self.c)
-        self.adr = adr
+        self.adr1 = adr1
+        self.adr2 = adr2
+        self.adrs = [self.adr1, self.adr2]
         self.cdb = CommandDB()
 
         self.checks = {}
 
     def test(self):
         self.checks['initializing'] = self.initializing()
-        self.checks['setpoint'] = self.setpoint()
-        self.checks['physics'] = self.physics()
-        self.checks['device'] = self.device()
+        # self.checks['setpoint'] = self.setpoint()
+        # self.checks['physics'] = self.physics()
+        # self.checks['device'] = self.device()
         # self.checks['pulldown'] = self.pulldown()
-        self.checks['multicasting'] = self.multicasting()
-        self.checks['voltage'] = self.voltage()
-        self.checks['errorWarn'] = self.errorWarn()
+        # self.checks['multicasting'] = self.multicasting()
+        # self.checks['voltage'] = self.voltage()
+        # self.checks['errorWarn'] = self.errorWarn()
 
         self.format_checks(self.checks)
 
@@ -40,11 +42,16 @@ class SingleUnit:
         print(_C.BLUE + 'Initialization Test' + _C.ENDC)
         tests = {}
         x5_pre = self.c.stateDigital()['ADDR-OUT']
+        self.c.resetAddr()
         self.c.listenAdr()
-        self.c.setAddr(self.adr)
+        self.c.setAddr(self.adr1)
+        self.c.setAddr(self.adr2)
         x5_post = self.c.stateDigital()['ADDR-OUT']
-        self.psu = PSU(self.c, self.adr)
-        self.psu.testing = True
+        self.psu1 = PSU(self.c, self.adr1)
+        self.psu1.testing = True
+        print('PSU 1 Success')
+        self.psu2 = PSU(self.c, self.adr2)
+        self.psu2.testing = True
         if not x5_pre and x5_post:
             print(_C.LIME + 'ADDR-OUT Signaling: PASS' + _C.ENDC)
             tests['ADDR-OUT Signaling'] = True
@@ -52,7 +59,7 @@ class SingleUnit:
             print(_C.RED + 'ADDR-OUT Signaling: FAIL' + _C.ENDC)
             tests['ADDR-OUT Signaling'] = False
 
-        if self.psu.psu_connected:
+        if self.psu1.psu_connected and self.psu2.psu_connected:
             print(_C.LIME + 'Addressing: PASS' + _C.ENDC)
             tests['Addressing'] = True
         else:
@@ -134,7 +141,7 @@ class SingleUnit:
         if nok0:
             print(_C.YEL + _C.BOLD + 'Turn supply off and back on' + _C.ENDC)
             t0 = time.time()
-            timeout = 20
+            timeout = 0
             timeout_FLAG = False
             off = False
 
@@ -266,6 +273,7 @@ class SingleUnit:
               end='\r')
         for _ in range(5):
             setvoltage = self.psu.setVoltage(v_ref)
+            print(setvoltage)
             voltages.append(setvoltage)
             try:
                 voltages_phys.append(self.psu.getPhysics()['vout'])
@@ -279,6 +287,8 @@ class SingleUnit:
         offstate2 = self.psu.getOn()
         print(' ' * 50, end='\r')
         self.c.disable()
+        print(voltages)
+        print(voltages_phys)
         if None in voltages:
             voltage_command_fail = True
             voltage_value_fail = True
@@ -367,5 +377,5 @@ class SingleUnit:
 
 
 if __name__ == '__main__':
-    u = SingleUnit()
+    u = ParallelUnit()
     u.test()
