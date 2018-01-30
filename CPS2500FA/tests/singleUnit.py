@@ -39,6 +39,21 @@ class SingleUnit:
         print()
         print(_C.BLUE + 'Initialization Test' + _C.ENDC)
         tests = {}
+
+        adrspace = range(1, 256)
+        checkspace = [False for _ in adrspace]
+        self.c.listenAdr()
+        for i, adr in enumerate(adrspace):
+            print(_C.YEL + 'Addressing ' + str(hex(adr)) + _C.ENDC, end='\r')
+            self.c.resetAddr()
+            self.c.setAddr(adr)
+            psu_tmp = PSU(self.c, adr)
+            if psu_tmp.psu_connected:
+                checkspace[i] = True
+            del psu_tmp
+
+        failAdr = [i for i, b in enumerate(checkspace) if not b]
+
         x5_pre = self.c.stateDigital()['ADDR-OUT']
         self.c.setAddr(self.adr)
         x5_post = self.c.stateDigital()['ADDR-OUT']
