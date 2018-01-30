@@ -27,13 +27,14 @@ class ParallelUnit:
 
     def test(self):
         self.checks['initializing'] = self.initializing()
-        # self.checks['setpoint'] = self.setpoint()
-        # self.checks['physics'] = self.physics()
-        # self.checks['device'] = self.device()
-        # self.checks['pulldown'] = self.pulldown()
-        # self.checks['multicasting'] = self.multicasting()
-        # self.checks['voltage'] = self.voltage()
-        # self.checks['errorWarn'] = self.errorWarn()
+        for i, psu in enumerate(self.psus):
+            self.checks['setpoint_' + str(i)] = self.setpoint(psu)
+            self.checks['physics_' + str(i)] = self.physics(psu)
+            self.checks['device_' + str(i)] = self.device(psu)
+            # self.checks['pulldown_' + str(i)] = self.pulldown(psu)
+            # self.checks['multicasting_' + str(i)] = self.multicasting(psu)
+            self.checks['voltage_' + str(i)] = self.voltage(psu)
+        # self.checks['errorWarn_' + str(i)] = self.errorWarn(psu)
 
         self.format_checks(self.checks)
 
@@ -42,16 +43,31 @@ class ParallelUnit:
         print(_C.BLUE + 'Initialization Test' + _C.ENDC)
         tests = {}
         x5_pre = self.c.stateDigital()['ADDR-OUT']
-        self.c.resetAddr()
-        self.c.listenAdr()
-        self.c.setAddr(self.adr1)
-        self.c.setAddr(self.adr2)
-        x5_post = self.c.stateDigital()['ADDR-OUT']
-        self.psu1 = PSU(self.c, self.adr1)
-        self.psu1.testing = True
-        print('PSU 1 Success')
-        self.psu2 = PSU(self.c, self.adr2)
-        self.psu2.testing = True
+        success = False
+        tries = 0
+        while not success:
+            self.c.resetAddr()
+            self.c.listenAdr()
+            self.c.setAddr(self.adr1)
+            self.c.setAddr(self.adr2)
+            x5_post = self.c.stateDigital()['ADDR-OUT']
+            try:
+                self.psu1 = PSU(self.c, self.adr1)
+                self.psu1.testing = True
+                self.psu2 = PSU(self.c, self.adr2)
+                self.psu2.testing = True
+                if self.psu1.psu_connected and self.psu2.psu_connected:
+                    success = True
+                else:
+                    del self.psu1
+                    del self.psu2
+            except KeyboardInterrupt:
+                sys.exit()
+            except:
+                pass
+            tries += 1
+        print(_C.YEL + 'Connection attempts: ' + str(tries) + _C.ENDC)
+        self.psus = [self.psu1, self.psu2]
         if not x5_pre and x5_post:
             print(_C.LIME + 'ADDR-OUT Signaling: PASS' + _C.ENDC)
             tests['ADDR-OUT Signaling'] = True
@@ -67,19 +83,19 @@ class ParallelUnit:
             tests['Addressing'] = False
         return tests
 
-    def setpoint(self):
+    def setpoint(self, psu):
         print()
         print(_C.BLUE + 'Setpoint Test' + _C.ENDC)
         tests = {}
         aSet = 10
-        a0 = self.psu.getCurrentLimit()
+        a0 = psu.getCurrentLimit()
         print(a0)
-        setpoint = self.psu.setCurrentLimit(aSet)
+        setpoint = psu.setCurrentLimit(aSet)
         print(setpoint)
-        a1 = self.psu.getCurrentLimit()
+        a1 = psu.getCurrentLimit()
         print(a1)
 
-        self.psu.setCurrentLimit(0)
+        psu.setCurrentLimit(0)
 
         if a0 is not None:
             print(_C.LIME + 'Current setpoint read: PASS' + _C.ENDC)
@@ -106,11 +122,11 @@ class ParallelUnit:
             tests['Current setpoint accuracy'] = (False, None)
         return tests
 
-    def physics(self):
+    def physics(self, psu):
         print()
         print(_C.BLUE + 'Physics Test' + _C.ENDC)
         tests = {}
-        phys = self.psu.getPhysics()
+        phys = psu.getPhysics()
         if phys is not None:
             for key in phys:
                 val, cmd = phys[key]
@@ -201,10 +217,10 @@ class ParallelUnit:
             tests['Warning clear'] = False
         return tests
 
-    def device(self):
+    def device(self, psu):
         print()
         print(_C.BLUE + 'Device Info Test' + _C.ENDC)
-        info = self.psu.deviceInfo()
+        info = psu.deviceInfo()
         tests = {}
         keys = self.cdb.devicekeys
         for key in keys:
@@ -217,7 +233,7 @@ class ParallelUnit:
                 success = True
                 word = 'PASS'
             print(color + self.cdb.db[key]['desc'] + ': ' + word + _C.ENDC)
-            tests[self.cdb.db[key]['desc']] = success
+            tests[self.cdb.db[key]['desc']] = (success, info[key])
         return tests
 
     def pulldown(self):
@@ -227,12 +243,12 @@ class ParallelUnit:
         tests = {}
         return tests
 
-    def multicasting(self):
+    def multicasting(self, psu):
         print()
         print(_C.BLUE + 'Multicasting Test' + _C.ENDC)
         tests = {}
-        master = self.psu.setMaster()
-        slave = self.psu.setSlave()
+        master = psu.setMaster()
+        slave = psu.setSlave()
         if master is not None and master['data'] == 1:
             print(_C.LIME + 'Setting master: PASS' + _C.ENDC)
             tests['Setting master'] = True
@@ -247,7 +263,7 @@ class ParallelUnit:
             tests['Setting slave'] = False
         return tests
 
-    def voltage(self):
+    def voltage(self, psu):
         print()
         print(_C.BLUE + 'Voltage Test' + _C.ENDC)
         tests = {}
@@ -262,29 +278,28 @@ class ParallelUnit:
                 print(_C.RED + 'Enable ' + str(i) + ': FAIL' + _C.ENDC)
                 tests['Enable ' + str(i)] = False
         self.c.enable()
-        self.psu.setCurrentLimit(10)
-        offstate = self.psu.getOn()
-        turnOn = self.psu.turnOn()
-        onstate = self.psu.getOn()
+        psu.setCurrentLimit(10)
+        offstate = psu.getOn()
+        turnOn = psu.turnOn()
+        onstate = psu.getOn()
         voltages = []
         voltages_phys = []
         v_ref = 10
         print(_C.YEL + '⚡⚡⚡ Warning: Device voltage enabled' + _C.ENDC,
               end='\r')
         for _ in range(5):
-            setvoltage = self.psu.setVoltage(v_ref)
+            setvoltage = psu.setVoltage(v_ref)
             print(setvoltage)
             voltages.append(setvoltage)
             try:
-                voltages_phys.append(self.psu.getPhysics()['vout'])
+                voltages_phys.append(psu.getPhysics()['vout'])
             except TypeError:
                 voltages_phys.append(None)
             time.sleep(0.1)
+        psu.setVoltage(0)
 
-        self.psu.setVoltage(0)
-
-        turnOff = self.psu.turnOff()
-        offstate2 = self.psu.getOn()
+        turnOff = psu.turnOff()
+        offstate2 = psu.getOn()
         print(' ' * 50, end='\r')
         self.c.disable()
         print(voltages)

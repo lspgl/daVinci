@@ -43,8 +43,6 @@ class PSU:
 
         self.configureScale()
 
-        print('PSU Type:', self.PSUType)
-
     def configureScale(self, psuType=None):
         if psuType is None:
             typeSignal = self.getType()
@@ -62,11 +60,13 @@ class PSU:
             self.vmax = 55.0  # Maximal voltage limit
             self.vmax_ret = 60.0  # Maximal voltage readback
             self.vmin = 5.0
+            self.pmax = 1.0
         elif self.PSUType == 'CPS2500':
             self.imax = 66.0  # Maximal current limit
             self.vmax = 40.0  # Maximal voltage limit
             self.vmax_ret = 48.0  # Maximal voltage readback
             self.vmin = 5.0
+            self.pmax = 1.0
         else:
             raise Exception('NO PSU TYPE')
 

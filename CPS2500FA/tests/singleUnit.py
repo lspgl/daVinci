@@ -41,6 +41,7 @@ class SingleUnit:
         tests = {}
 
         adrspace = range(1, 256)
+        adrspace = [1]
         checkspace = [False for _ in adrspace]
         self.c.listenAdr()
         for i, adr in enumerate(adrspace):
@@ -162,6 +163,7 @@ class SingleUnit:
             print(_C.YEL + _C.BOLD + 'Turn supply off and back on' + _C.ENDC)
             t0 = time.time()
             timeout = 20
+            # timeout = 0
             timeout_FLAG = False
             off = False
 
@@ -303,10 +305,10 @@ class SingleUnit:
             voltages.append(setvoltage)
             try:
                 voltage_phys = self.psu.getPhysics()
-                voltages_phys.append(voltage_phys['vout'])
+                voltages_phys.append(voltage_phys['vout'][0])
             except TypeError:
                 voltages_phys.append(None)
-            time.sleep(0.1)
+            time.sleep(0.01)
 
         self.psu.setVoltage(0)
 
@@ -372,17 +374,19 @@ class SingleUnit:
 
         if not voltage_value_fail:
             print(_C.LIME + 'Voltage RS485-1 value (RS485-1): PASS' + _C.ENDC)
-            tests['Voltage RS485-1 value (RS485-1)'] = True
+            tests['Voltage RS485-1 value (RS485-1)'] = (True, voltages)
         else:
             print(_C.RED + 'Voltage RS485-1 value (RS485-1): FAIL' + _C.ENDC)
-            tests['Voltage RS485-1 value (RS485-1)'] = False
+            tests['Voltage RS485-1 value (RS485-1)'] = (False, voltages)
 
         if not voltage_phys_fail:
             print(_C.LIME + 'Voltage RS485-2 value (RS485-1, 0x10): PASS' + _C.ENDC)
-            tests['Voltage RS485-2 value (RS485-1, 0x10)'] = True
+            tests['Voltage RS485-2 value (RS485-1, 0x10)'] = (True,
+                                                              voltages_phys)
         else:
             print(_C.RED + 'Voltage RS485-2 value (RS485-1, 0x10): FAIL' + _C.ENDC)
-            tests['Voltage RS485-2 value (RS485-1, 0x10)'] = False
+            tests['Voltage RS485-2 value (RS485-1, 0x10)'] = (False,
+                                                              voltages_phys)
 
         return tests
 

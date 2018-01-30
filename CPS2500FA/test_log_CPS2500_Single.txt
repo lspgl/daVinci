@@ -1,0 +1,47 @@
+initializing
+    ADDR-OUT Signaling (GPIO): FAIL
+    Addressing (0x05, 0x06): PASS
+    Address space (1-1): PASS
+
+setpoint
+    Current setpoint read (0x03): (PASS, 0.0)
+    Current setpoint write (0x04): (PASS, 0)
+    Current setpoint accuracy (0x03, 0x04): (FAIL, -254.84504463263906)
+
+physics
+    Reading output voltage (0x10): (PASS, 36.680247196154724)
+    Reading output current (0x11): (PASS, 0.4511787594415198)
+    Reading output power (0x12): (PASS, 1.5259021896696422e-05)
+    Reading input voltage (0x13): (PASS, 233.59)
+    Reading input frequency (0x14): (PASS, 24.62)
+    Reading temperature (0x15): (PASS, 865.137)
+
+device
+    Power board HW version (0x18): (PASS, '0x0')
+    Control board HW version (0x19): (PASS, '0x0')
+    Firmware version (0x1a): (PASS, '0x4')
+    Serial number (0x1b): (PASS, '0xc3bfc3bfc3bfc3bfc3bfc3bfc3bfc3bf')
+    Type (0x1c): (FAIL, None)
+
+multicasting
+    Setting master (0x24): FAIL
+    Setting slave (0x24): FAIL
+
+voltage
+    Enable 1 (GPIO): PASS
+    Enable 2 (GPIO): PASS
+    Reading on-state (0x00): PASS
+    Turning on (0x02): PASS
+    Turning off (0x01): PASS
+    Voltage command (RS485-1): FAIL
+    Voltage RS485-1 value (RS485-1): (FAIL, [804.506660563058, 5412.5806363012125, 6.022796978713664, 9393.18141451133, 36.70295262073701, 36.70295262073701, 36.70295262073701, 36.70295262073701, None, 36.70295262073701, None, 36.70295262073701, 36.70295262073701, 36.70295262073701, None, 36.70295262073701, 36.70295262073701, 36.70295262073701, None, None])
+    Voltage RS485-2 value (RS485-1, 0x10): (PASS, [10.160311284046692, 10.007965209430076, 9.949370565346761, 9.937651636530099, 9.937651636530099, 9.937651636530099, 9.937651636530099, 9.937651636530099, 9.937651636530099, 9.937651636530099, 9.937651636530099, 9.937651636530099, 9.937651636530099, 9.937651636530099, 9.937651636530099, 9.937651636530099, 9.937651636530099, 9.937651636530099, 9.937651636530099, 9.937651636530099])
+
+errorWarn
+    Mains NOK signal (GPIO): PASS
+    Error mask read (0x16): PASS
+    Warning mask read (0x25): PASS
+    Error clear (0x17): FAIL
+    Warning clear (0x26): FAIL
+
+Passed 23 out of 32 test cases.

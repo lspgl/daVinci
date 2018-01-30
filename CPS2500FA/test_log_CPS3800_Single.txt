@@ -1,0 +1,47 @@
+initializing
+    ADDR-OUT Signaling (GPIO): FAIL
+    Addressing (0x05, 0x06): PASS
+    Address space (1-1): PASS
+
+setpoint
+    Current setpoint read (0x03): (PASS, 19556.296635385672)
+    Current setpoint write (0x04): (PASS, 0)
+    Current setpoint accuracy (0x03, 0x04): (FAIL, -256.60540169375145)
+
+physics
+    Reading output voltage (0x10): (PASS, 0.0)
+    Reading output current (0x11): (PASS, 63.88281071183337)
+    Reading output power (0x12): (PASS, 0.0)
+    Reading input voltage (0x13): (PASS, 0.0)
+    Reading input frequency (0x14): (PASS, 0.0)
+    Reading temperature (0x15): (PASS, 737.434)
+
+device
+    Power board HW version (0x18): (PASS, '0x0')
+    Control board HW version (0x19): (PASS, '0x0')
+    Firmware version (0x1a): (PASS, '0x3')
+    Serial number (0x1b): (PASS, '0xc3bfc3bfc3bfc3bfc3bfc3bfc3bfc3bf')
+    Type (0x1c): (PASS, '0x1')
+
+multicasting
+    Setting master (0x24): PASS
+    Setting slave (0x24): PASS
+
+voltage
+    Enable 1 (GPIO): PASS
+    Enable 2 (GPIO): PASS
+    Reading on-state (0x00): PASS
+    Turning on (0x02): PASS
+    Turning off (0x01): PASS
+    Voltage command (RS485-1): FAIL
+    Voltage RS485-1 value (RS485-1): (FAIL, [6765.740444037537, 3004891.7244220646, 3004891.7244220646, 3004891.7244220646, 3004891.7244220646, 3004891.7244220646, 3004891.7244220646, 3004891.7244220646, 3004891.7244220646, 3004891.7244220646, 3004891.7244220646, 3004891.7244220646, 3004891.7244220646, 3004891.7244220646, 3004891.7244220646, 3004891.7244220646, None, 3004891.7244220646, 3004891.7244220646, 3004891.7244220646])
+    Voltage RS485-2 value (RS485-1, 0x10): (FAIL, [9.90249485008011, 2505.8878461890595, 2505.8878461890595, 2505.8878461890595, 2505.8878461890595, 2505.90249485008, 2505.8878461890595, 2505.8878461890595, 2505.8878461890595, 2505.8878461890595, 2505.8878461890595, 2505.8878461890595, 2505.90249485008, 2505.8878461890595, 2505.8878461890595, 2505.8878461890595, 2505.8878461890595, 2505.8878461890595, 2505.8878461890595, 2505.8878461890595])
+
+errorWarn
+    Mains NOK signal (GPIO): PASS
+    Error mask read (0x16): PASS
+    Warning mask read (0x25): PASS
+    Error clear (0x17): PASS
+    Warning clear (0x26): PASS
+
+Passed 27 out of 32 test cases.

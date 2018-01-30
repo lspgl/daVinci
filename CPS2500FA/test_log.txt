@@ -1,32 +1,58 @@
 initializing
-    ADDR-OUT Signaling: FAIL
+    ADDR-OUT Signaling: PASS
     Addressing: PASS
 
-setpoint
-    Current setpoint read: (PASS, 0.0)
+setpoint_0
+    Current setpoint read: (PASS, 19556.296635385672)
     Current setpoint write: (PASS, 0)
     Current setpoint accuracy: (FAIL, -256.60540169375145)
 
-physics
-    Reading output voltage (0x10): (PASS, 180.4715037766079)
-    Reading output current (0x11): (PASS, 64.14941634241245)
-    Reading output power (0x12): (PASS, 0.09668116273746853)
+physics_0
+    Reading output voltage (0x10): (PASS, 0.0)
+    Reading output current (0x11): (PASS, 63.88281071183337)
+    Reading output power (0x12): (PASS, 0.0)
     Reading input voltage (0x13): (PASS, 0.0)
     Reading input frequency (0x14): (PASS, 0.0)
-    Reading temperature (0x15): (PASS, 993.178)
+    Reading temperature (0x15): (PASS, 993.137)
 
-device
-    Power board HW version: PASS
-    Control board HW version: PASS
-    Firmware version: PASS
-    Serial number: PASS
-    Type: PASS
+device_0
+    Power board HW version: (PASS, '0x0')
+    Control board HW version: (PASS, '0x0')
+    Firmware version: (PASS, '0x3')
+    Serial number: (PASS, '0xc3bfc3bfc3bfc3bfc3bfc3bfc3bfc3bf')
+    Type: (PASS, '0x1')
 
-multicasting
-    Setting master: PASS
-    Setting slave: PASS
+voltage_0
+    Enable 1: PASS
+    Enable 2: PASS
+    Reading on-state: PASS
+    Turning on: PASS
+    Turning off: PASS
+    Voltage command: FAIL
+    Voltage RS485-1 value: FAIL
+    Voltage RS485-2 value: FAIL
 
-voltage
+setpoint_1
+    Current setpoint read: (PASS, 19556.296635385672)
+    Current setpoint write: (PASS, 0)
+    Current setpoint accuracy: (FAIL, -256.60540169375145)
+
+physics_1
+    Reading output voltage (0x10): (PASS, 105.82192721446555)
+    Reading output current (0x11): (PASS, 0.0)
+    Reading output power (0x12): (PASS, 0.0)
+    Reading input voltage (0x13): (PASS, 0.0)
+    Reading input frequency (0x14): (PASS, 0.0)
+    Reading temperature (0x15): (PASS, 993.421)
+
+device_1
+    Power board HW version: (PASS, '0x0')
+    Control board HW version: (PASS, '0x0')
+    Firmware version: (PASS, '0x3')
+    Serial number: (PASS, '0xc3bfc3bfc3bfc3bfc3bfc3bfc3bfc3bf')
+    Type: (PASS, '0x1')
+
+voltage_1
     Enable 1: PASS
     Enable 2: PASS
     Reading on-state: PASS
@@ -36,11 +62,4 @@ voltage
     Voltage RS485-1 value: FAIL
     Voltage RS485-2 value: FAIL
 
-errorWarn
-    Mains NOK signal: PASS
-    Error mask read: PASS
-    Warning mask read: PASS
-    Error clear: PASS
-    Warning clear: PASS
-
-Passed 27 out of 31 test cases.
+Passed 39 out of 46 test cases.
