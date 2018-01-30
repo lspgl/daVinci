@@ -8,10 +8,10 @@ import time
 
 class App:
 
-    def __init__(self, psu):
-        self.psu = psu
+    def __init__(self):
+        #self.psu = psu
         self.app = QApplication(sys.argv)
-        self.gui = GUI(self.app, self.psu, self.update)
+        self.gui = GUI(self.app, self.update)
         self.gui.show()
         sys.exit(self.app.exec_())
 

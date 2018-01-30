@@ -139,8 +139,8 @@ class Controller:
         return check
 
     def disable(self, verbose=False):
-        d1 = self.enableSingle(1, verbose=verbose)
-        d2 = self.enableSingle(2, verbose=verbose)
+        d1 = self.disableSingle(1, verbose=verbose)
+        d2 = self.disableSingle(2, verbose=verbose)
         check = d1 and d2
         return check
 

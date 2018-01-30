@@ -62,7 +62,7 @@ class ControlButton(QLabel):
 
         shadow = QGraphicsDropShadowEffect(self)
         shadow.setBlurRadius(6)
-        shadow.setColor(QColor('#000000'))
+        shadow.setColor(QColor('#d2d2d2'))
         shadow.setOffset(0, 6)
         self.setGraphicsEffect(shadow)
 

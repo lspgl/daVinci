@@ -54,6 +54,7 @@ class RS485:
 
         crc = ord(self.calc_crc(send_array))
         send_array += [crc]
+        # print(send_array)
         if verbose:
             print('')
             psuSignal.tablePrint(send_array, send_length)
@@ -73,7 +74,6 @@ class RS485:
 
     def setMulticastMaster(self, adr, verbose=False):
         signal = self.send_and_recieve(adr, 0x24, data=1, length=1, verbose=verbose)
-        print(signal)
         return signal
 
     def voltage_and_recieve(self, adr, data, timeout=50, autowipe=True, verbose=False, getTime=False):

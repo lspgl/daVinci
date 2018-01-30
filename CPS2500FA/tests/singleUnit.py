@@ -31,7 +31,7 @@ class SingleUnit:
         # self.checks['pulldown'] = self.pulldown()
         self.checks['multicasting'] = self.multicasting()
         self.checks['voltage'] = self.voltage()
-        self.checks['errorWarn'] = self.errorWarn()
+        self.checks['errorWarn'] = self.errorWarn(timeout=20)
 
         self.format_checks(self.checks)
 
@@ -40,24 +40,34 @@ class SingleUnit:
         print(_C.BLUE + 'Initialization Test' + _C.ENDC)
         tests = {}
         x5_pre = self.c.stateDigital()['ADDR-OUT']
-        self.c.listenAdr()
         self.c.setAddr(self.adr)
         x5_post = self.c.stateDigital()['ADDR-OUT']
         self.psu = PSU(self.c, self.adr)
         self.psu.testing = True
         if not x5_pre and x5_post:
-            print(_C.LIME + 'ADDR-OUT Signaling: PASS' + _C.ENDC)
-            tests['ADDR-OUT Signaling'] = True
+            print(_C.LIME + 'ADDR-OUT Signaling (GPIO): PASS' + _C.ENDC)
+            tests['ADDR-OUT Signaling (GPIO)'] = True
         else:
-            print(_C.RED + 'ADDR-OUT Signaling: FAIL' + _C.ENDC)
-            tests['ADDR-OUT Signaling'] = False
+            print(_C.RED + 'ADDR-OUT Signaling (GPIO): FAIL' + _C.ENDC)
+            tests['ADDR-OUT Signaling (GPIO)'] = False
 
         if self.psu.psu_connected:
-            print(_C.LIME + 'Addressing: PASS' + _C.ENDC)
-            tests['Addressing'] = True
+            print(_C.LIME + 'Addressing (0x05, 0x06): PASS ' + _C.ENDC)
+            tests['Addressing (0x05, 0x06)'] = True
         else:
-            print(_C.RED + 'Adressing: FAIL' + _C.ENDC)
-            tests['Addressing'] = False
+            print(_C.RED + 'Adressing (0x05, 0x06): FAIL' + _C.ENDC)
+            tests['Addressing (0x05, 0x06)'] = False
+
+        if len(failAdr) == 0:
+            print(_C.LIME + 'Address space (' +
+                  str(adrspace[0]) + '-' + str(adrspace[-1]) + '): PASS' + _C.ENDC)
+            tests['Address space (' + str(adrspace[0]) +
+                  '-' + str(adrspace[-1]) + ')'] = True
+        else:
+            print(_C.RED + 'Address space (' +
+                  str(adrspace[0]) + '-' + str(adrspace[-1]) + '): FAIL' + _C.ENDC)
+            tests['Address space (' + str(adrspace[0]) + '-' +
+                  str(adrspace[-1]) + ')'] = (False, str(failAdr))
         return tests
 
     def setpoint(self):
@@ -75,28 +85,30 @@ class SingleUnit:
         self.psu.setCurrentLimit(0)
 
         if a0 is not None:
-            print(_C.LIME + 'Current setpoint read: PASS' + _C.ENDC)
-            tests['Current setpoint read'] = (True, a0)
+            print(_C.LIME + 'Current setpoint read (0x03): PASS' + _C.ENDC)
+            tests['Current setpoint read (0x03)'] = (True, a0)
         else:
-            print(_C.RED + 'Current setpoint read: FAIL' + _C.ENDC)
-            tests['Current setpoint read'] = (False, a0)
+            print(_C.RED + 'Current setpoint read (0x03): FAIL' + _C.ENDC)
+            tests['Current setpoint read (0x03)'] = (False, a0)
 
         if setpoint == 0:
-            print(_C.LIME + 'Current setpoint write: PASS' + _C.ENDC)
-            tests['Current setpoint write'] = (True, 0)
+            print(_C.LIME + 'Current setpoint write (0x04): PASS' + _C.ENDC)
+            tests['Current setpoint write (0x04)'] = (True, 0)
         else:
-            print(_C.RED + 'Current setpoint write: FAIL' + _C.ENDC)
-            tests['Current setpoint write'] = (False, setpoint)
+            print(_C.RED + 'Current setpoint write (0x04): FAIL' + _C.ENDC)
+            tests['Current setpoint write (0x04)'] = (False, setpoint)
 
         if isinstance(a1, float) and a1 > aSet * 0.99 and a1 < aSet * 1.01:
-            print(_C.LIME + 'Current setpoint accuracy: PASS' + _C.ENDC)
-            tests['Current setpoint value'] = (True, 1 - a1 / aSet)
+            print(_C.LIME + 'Current setpoint accuracy (0x03, 0x04): PASS' + _C.ENDC)
+            tests['Current setpoint value (0x03, 0x04)'] = (
+                True, 1 - a1 / aSet)
         elif isinstance(a1, float):
-            print(_C.RED + 'Current setpoint accuracy: FAIL' + _C.ENDC)
-            tests['Current setpoint accuracy'] = (False, 1 - a1 / aSet)
+            print(_C.RED + 'Current setpoint accuracy (0x03, 0x04): FAIL' + _C.ENDC)
+            tests['Current setpoint accuracy (0x03, 0x04)'] = (
+                False, 1 - a1 / aSet)
         else:
-            print(_C.RED + 'Current setpoint accuracy: FAIL' + _C.ENDC)
-            tests['Current setpoint accuracy'] = (False, None)
+            print(_C.RED + 'Current setpoint accuracy (0x03, 0x04): FAIL' + _C.ENDC)
+            tests['Current setpoint accuracy (0x03, 0x04)'] = (False, None)
         return tests
 
     def physics(self):
@@ -125,7 +137,7 @@ class SingleUnit:
                       ' (' + str(hex(key)) + ')'] = (False, None)
         return tests
 
-    def errorWarn(self):
+    def errorWarn(self, timeout=5):
         print()
         print(_C.BLUE + 'Error/Warning Test' + _C.ENDC)
         tests = {}
@@ -151,47 +163,49 @@ class SingleUnit:
                 if t1 > timeout:
                     timeout_FLAG = True
                     break
-            if timeout_FLAG:
+            if timeout_FLAG and timeout != 0:
                 input(_C.YEL + _C.BOLD +
                       'Turn power supply back on and press [ENTER]\n' + _C.ENDC)
         if cycle_success:
-            print(_C.LIME + 'Mains NOK signal: PASS' + _C.ENDC)
-            tests['Mains NOK signal'] = True
+            print(_C.LIME + 'Mains NOK signal (GPIO): PASS' + _C.ENDC)
+            tests['Mains NOK signal (GPIO)'] = True
         else:
-            print(_C.RED + 'Mains NOK signal: FAIL' + _C.ENDC)
-            tests['Mains NOK signal'] = False
+            print(_C.RED + 'Mains NOK signal (GPIO): FAIL' + _C.ENDC)
+            tests['Mains NOK signal (GPIO)'] = False
 
         e1 = self.psu.getError()
         w1 = self.psu.getWarning()
-        if e1 == '0000000010000000' or e1 == '0000000000000000':
-            print(_C.LIME + 'Error mask read: PASS' + _C.ENDC)
-            tests['Error mask read'] = True
+        if e1 is not None:
+            print(_C.LIME + 'Error mask read (0x16): PASS' + _C.ENDC)
+            tests['Error mask read (0x16)'] = True
         else:
-            print(_C.RED + 'Error mask read: FAIL' + _C.ENDC)
-            tests['Error mask read'] = False
-        if w1 == '0000000000000000':
-            print(_C.LIME + 'Warning mask read: PASS' + _C.ENDC)
-            tests['Warning mask read'] = True
+            print(_C.RED + 'Error mask read (0x16): FAIL' + _C.ENDC)
+            tests['Error mask read (0x16)'] = False
+        if w1 is not None:
+            print(_C.LIME + 'Warning mask read (0x25): PASS' + _C.ENDC)
+            tests['Warning mask read (0x25)'] = True
         else:
-            print(_C.RED + 'Error mask read: FAIL' + _C.ENDC)
-            tests['Warning mask read'] = False
+            print(_C.RED + 'Warning mask read (0x25): FAIL' + _C.ENDC)
+            tests['Warning mask read (0x25)'] = False
 
         clearE = self.psu.clearError()
         clearW = self.psu.clearWarning()
+        w2 = self.psu.getWarning()
+        e2 = self.psu.getError()
 
-        if clearE == 0:
-            print(_C.LIME + 'Error clear: PASS' + _C.ENDC)
-            tests['Error clear'] = True
+        if clearE == 0 and e2 == '0000000000000000':
+            print(_C.LIME + 'Error clear (0x17): PASS' + _C.ENDC)
+            tests['Error clear (0x17)'] = True
         else:
-            print(_C.RED + 'Error clear: FAIL' + _C.ENDC)
-            tests['Error clear'] = False
+            print(_C.RED + 'Error clear (0x17): FAIL' + _C.ENDC)
+            tests['Error clear (0x17)'] = False
 
-        if clearW == 0:
-            print(_C.LIME + 'Warning clear: PASS' + _C.ENDC)
-            tests['Warning clear'] = True
+        if clearW == 0 and w2 == '0000000000000000':
+            print(_C.LIME + 'Warning clear (0x26): PASS' + _C.ENDC)
+            tests['Warning clear (0x26)'] = True
         else:
-            print(_C.RED + 'Warning clear: FAIL' + _C.ENDC)
-            tests['Warning clear'] = False
+            print(_C.RED + 'Warning clear (0x26): FAIL' + _C.ENDC)
+            tests['Warning clear (0x26)'] = False
         return tests
 
     def device(self):
@@ -205,12 +219,16 @@ class SingleUnit:
                 color = _C.RED
                 success = False
                 word = 'FAIL'
+                val = None
             else:
                 color = _C.LIME
                 success = True
                 word = 'PASS'
-            print(color + self.cdb.db[key]['desc'] + ': ' + word + _C.ENDC)
-            tests[self.cdb.db[key]['desc']] = success
+                val = info[key]
+            print(color + self.cdb.db[key]['desc'] + ' (' +
+                  str(hex(key)) + ')' + ': ' + word + _C.ENDC)
+            tests[self.cdb.db[key]['desc'] +
+                  ' (' + str(hex(key)) + ')'] = (success, val)
         return tests
 
     def pulldown(self):
@@ -227,17 +245,17 @@ class SingleUnit:
         master = self.psu.setMaster()
         slave = self.psu.setSlave()
         if master is not None and master['data'] == 1:
-            print(_C.LIME + 'Setting master: PASS' + _C.ENDC)
-            tests['Setting master'] = True
+            print(_C.LIME + 'Setting master (0x24): PASS' + _C.ENDC)
+            tests['Setting master (0x24)'] = True
         else:
-            print(_C.RED + 'Setting master: FAIL' + _C.ENDC)
-            tests['Setting master'] = False
+            print(_C.RED + 'Setting master (0x24): FAIL' + _C.ENDC)
+            tests['Setting master (0x24)'] = False
         if slave is not None and slave['data'] == 0:
-            print(_C.LIME + 'Setting slave: PASS' + _C.ENDC)
-            tests['Setting slave'] = True
+            print(_C.LIME + 'Setting slave (0x24): PASS' + _C.ENDC)
+            tests['Setting slave (0x24)'] = True
         else:
-            print(_C.RED + 'Setting slave: FAIL' + _C.ENDC)
-            tests['Setting slave'] = False
+            print(_C.RED + 'Setting slave (0x24): FAIL' + _C.ENDC)
+            tests['Setting slave (0x24)'] = False
         return tests
 
     def voltage(self):
@@ -249,11 +267,12 @@ class SingleUnit:
             post = self.c.disableSingle(i)
 
             if pre and post:
-                print(_C.LIME + 'Enable ' + str(i) + ': PASS' + _C.ENDC)
-                tests['Enable ' + str(i)] = True
+                print(_C.LIME + 'Enable ' + str(i) + ' (GPIO): PASS' + _C.ENDC)
+                tests['Enable ' + str(i) + ' (GPIO)'] = True
             else:
-                print(_C.RED + 'Enable ' + str(i) + ': FAIL' + _C.ENDC)
-                tests['Enable ' + str(i)] = False
+                print(_C.RED + 'Enable ' + str(i) + ' (GPIO): FAIL' + _C.ENDC)
+                tests['Enable ' + str(i) + ' (GPIO)'] = False
+        self.psu.setCurrentLimit(10)
         self.c.enable()
         self.psu.setCurrentLimit(10)
         offstate = self.psu.getOn()
@@ -264,11 +283,12 @@ class SingleUnit:
         v_ref = 10
         print(_C.YEL + '⚡⚡⚡ Warning: Device voltage enabled' + _C.ENDC,
               end='\r')
-        for _ in range(5):
-            setvoltage = self.psu.setVoltage(v_ref)
+        for i in range(20):
+            setvoltage = self.psu.setVoltage(v_ref, verbose=False)
             voltages.append(setvoltage)
             try:
-                voltages_phys.append(self.psu.getPhysics()['vout'])
+                voltage_phys = self.psu.getPhysics()
+                voltages_phys.append(voltage_phys['vout'])
             except TypeError:
                 voltages_phys.append(None)
             time.sleep(0.1)
@@ -277,7 +297,7 @@ class SingleUnit:
 
         turnOff = self.psu.turnOff()
         offstate2 = self.psu.getOn()
-        print(' ' * 50, end='\r')
+        print(' ' * 100, end='\r')
         self.c.disable()
         if None in voltages:
             voltage_command_fail = True
@@ -291,57 +311,63 @@ class SingleUnit:
             voltage_phys_fail = False
 
         if not voltage_command_fail:
-            for v in voltages:
-                if abs(v - v_ref) > v_ref * 0.1:
-                    voltage_value_fail = True
-                    break
+            v_avg = np.mean(voltages)
+            if abs(v_avg - v_ref) > v_ref * 0.1:
+                voltage_value_fail = True
+            # for v in voltages:
+            #    if abs(v - v_ref) > v_ref * 0.1:
+            #        voltage_value_fail = True
+            #        break
         if not voltage_phys_fail:
-            for v in voltages_phys:
-                if abs(v[0] - v_ref) > v_ref * 0.1:
-                    voltage_phys_fail = True
-                    break
+            v_phys_avg = np.mean(voltages_phys)
+            if abs(v_phys_avg - v_ref) > v_ref * 0.1:
+                voltage_phys_fail = True
+            # for v in voltages_phys:
+            #    if abs(v[0] - v_ref) > v_ref * 0.1:
+            #        voltage_phys_fail = True
+            #        break
 
         if offstate == 0:
-            print(_C.LIME + 'Reading on-state: PASS' + _C.ENDC)
-            tests['Reading on-state'] = True
+            print(_C.LIME + 'Reading on-state (0x00): PASS' + _C.ENDC)
+            tests['Reading on-state (0x00)'] = True
         else:
-            print(_C.RED + 'Reading on-state: FAIL' + _C.ENDC)
-            tests['Reading on-state'] = False
+            print(_C.RED + 'Reading on-state (0x00): FAIL' + _C.ENDC)
+            tests['Reading on-state (0x00)'] = False
 
         if turnOn == 0 and onstate == 1:
-            print(_C.LIME + 'Turning on: PASS' + _C.ENDC)
-            tests['Turning on'] = True
+            print(_C.LIME + 'Turning on (0x02): PASS' + _C.ENDC)
+            tests['Turning on (0x02)'] = True
         else:
-            print(_C.RED + 'Turning on: FAIL' + _C.ENDC)
-            tests['Turning on'] = False
+            print(_C.RED + 'Turning on (0x02): FAIL' + _C.ENDC)
+            tests['Turning on (0x02)'] = False
 
         if turnOff == 0 and offstate2 == 0:
-            print(_C.LIME + 'Turning off: PASS' + _C.ENDC)
-            tests['Turning off'] = True
+            print(_C.LIME + 'Turning off (0x01): PASS' + _C.ENDC)
+            tests['Turning off (0x01)'] = True
         else:
-            print(_C.RED + 'Turning off: FAIL' + _C.ENDC)
-            tests['Turning off'] = False
+            print(_C.RED + 'Turning off (0x01): FAIL' + _C.ENDC)
+            tests['Turning off (0x01)'] = False
 
         if not voltage_command_fail:
-            print(_C.LIME + 'Voltage command: PASS' + _C.ENDC)
-            tests['Voltage command'] = True
+            print(_C.LIME + 'Voltage command (RS485-1): PASS' + _C.ENDC)
+            tests['Voltage command (RS485-1)'] = True
         else:
-            print(_C.RED + 'Voltage command: FAIL' + _C.ENDC)
-            tests['Voltage command'] = False
+            print(_C.RED + 'Voltage command (RS485-1): FAIL' + _C.ENDC)
+            tests['Voltage command (RS485-1)'] = False
 
         if not voltage_value_fail:
-            print(_C.LIME + 'Voltage RS485-1 value: PASS' + _C.ENDC)
-            tests['Voltage RS485-1 value'] = True
+            print(_C.LIME + 'Voltage RS485-1 value (RS485-1): PASS' + _C.ENDC)
+            tests['Voltage RS485-1 value (RS485-1)'] = True
         else:
-            print(_C.RED + 'Voltage RS485-1 value: FAIL' + _C.ENDC)
-            tests['Voltage RS485-1 value'] = False
+            print(_C.RED + 'Voltage RS485-1 value (RS485-1): FAIL' + _C.ENDC)
+            tests['Voltage RS485-1 value (RS485-1)'] = False
 
         if not voltage_phys_fail:
-            print(_C.LIME + 'Voltage RS485-2 value: PASS' + _C.ENDC)
-            tests['Voltage RS485-2 value'] = True
+            print(_C.LIME + 'Voltage RS485-2 value (RS485-1, 0x10): PASS' + _C.ENDC)
+            tests['Voltage RS485-2 value (RS485-1, 0x10)'] = True
         else:
-            print(_C.RED + 'Voltage RS485-2 value: FAIL' + _C.ENDC)
-            tests['Voltage RS485-2 value'] = False
+            print(_C.RED + 'Voltage RS485-2 value (RS485-1, 0x10): FAIL' + _C.ENDC)
+            tests['Voltage RS485-2 value (RS485-1, 0x10)'] = False
 
         return tests
 
